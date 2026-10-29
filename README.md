@@ -10,8 +10,8 @@ build structure, Hilt dependency injection, tested domain models, and an
 Open-Meteo weather repository backed by a persistent Room cache, and a resizable
 Glance weather widget and an experimental Remote Compose weather widget.
 Barcelona is the default location; the app can save an approximate device location
-for the screen and both widget providers. Rain radar rendering will be implemented
-incrementally.
+for the screen and both widget providers. A RainViewer repository now downloads
+and caches complete historical radar sequences; radar rendering is the next step.
 
 ## Modules
 
@@ -229,7 +229,98 @@ codes to its own condition categories and stores a subset of the response. The
 free hosted endpoint is intended for non-commercial use and is subject to
 [usage limits and attribution requirements](https://open-meteo.com/en/pricing).
 Weather screens and widgets must carry provider attribution when implemented.
-The rain radar will be integrated separately.
+The radar uses its own provider and cache, described below.
+
+## Historical rain radar data
+
+`RadarRepository` in `:domain` exposes cache-only `observeRadar(coordinates)` and
+an explicit suspending `refreshRadar(coordinates)`. Its `:data` implementation is
+bound as a Hilt singleton. Callers pass the coordinates from the shared location
+repository, so Barcelona and a saved device position use the same contract.
+This step adds the data foundation; screens, widgets and background jobs do not
+request or display radar yet.
+
+A refresh reads the RainViewer manifest, sorts and deduplicates historical
+frames, and selects up to six of the most recent available frames. Conflicting
+identifiers/timestamps and future frames are rejected. The implementation uses
+the manifest's opaque paths instead of constructing them from timestamps.
+Unknown fields, including nowcast and satellite fields, are ignored.
+
+Each image is a 256 × 256 PNG centered on the requested coordinates, at zoom 7,
+using Universal Blue and smoothing. Images cover a region rather than a street
+or neighborhood. Latitude must be inside Web Mercator's ±85.05112878° range;
+unsupported polar locations fail before requesting data. Domain snapshots include
+the center, zoom and image size so future renderers can align geographic layers.
+No basemap is included in the provider's transparent precipitation images.
+
+`RadarFrame.generatedAt` is the composite frame's generation time; contributing
+radars may have different observation times. `manifestGeneratedAt`, `fetchedAt`
+and the coverage mask's `checkedAt` remain separate. Refreshing an unchanged
+manifest does not make its historical frames current. The public API supplies
+historical evolution, with no future precipitation prediction.
+
+### Coverage and persistence
+
+The same geographic area has a coverage mask: transparent pixels indicate
+potential radar coverage and opaque pixels indicate unavailable areas. The
+snapshot reports full, partial or absent coverage of the tile, plus whether its
+center is covered. This infrequently updated mask describes potential coverage,
+not the operational status of every contributing radar. An empty precipitation
+image alone must never be interpreted as proof that there is no rain.
+
+Frames and their coverage mask are downloaded and validated before publication.
+PNG signature, dimensions, termination and actual Android decoding are checked;
+individual network image bodies are capped at 512 KiB, and manifests at 128 KiB.
+The implementation reuses unchanged frames by source identifier and generation
+time. Coverage is revalidated after 24 hours; changing location obtains a separate
+sequence and mask.
+
+The single-process disk cache stores a versioned ZIP containing metadata and PNGs
+in the app's cache directory. It syncs a temporary file, then atomically replaces
+the committed snapshot on the same filesystem. CRC checks, bounded archive reads
+and image validation protect reopening. Failed downloads, invalid data and failed
+replacement writes preserve the previous complete snapshot. Cancellation
+propagates; no incomplete sequence is published. Interrupted temporary files are
+removed on reopening and corrupt entries become cache misses. Filesystem access
+errors propagate instead of appearing as valid empty data.
+
+Retention is capped at four locations and 8 MiB of committed snapshots, evicting
+the oldest written entries. One temporary snapshot may consume up to another
+4 MiB during replacement. Cache keys include the full requested coordinates;
+locations do not share images accidentally. Eviction can emit `null` to active
+observers. Older manifest generation times cannot overwrite a newer committed
+snapshot.
+This disposable cache is independent of Room; the weather database schema stays
+at version 1.
+
+Refreshes are serialized, run off the main thread and have a 60-second overall
+timeout. HTTP calls have a 10-second connect timeout and a 30-second call timeout,
+with cancellation attached until the response body has been read. The client
+spaces requests by at least 750 ms, disables automatic retries and redirects,
+and honors `Retry-After` on HTTP 429/503. During the cooldown, another request
+fails without contacting the provider. Callers decide when to retry; this step
+adds no background radar polling. Other clients sharing the same public IP may
+also consume the provider's allowance.
+
+### Radar provider and attribution
+
+Radar data is provided by [RainViewer](https://www.rainviewer.com/). Its public
+[Weather Maps API](https://www.rainviewer.com/api/weather-maps-api.html) describes
+two hours of past radar frames at ten-minute intervals, including coordinate-
+centered images and coverage masks. The
+[transition summary](https://www.rainviewer.com/api/transition-faq.html) documents
+the January 2026 restrictions: zoom 7, Universal Blue, 100 requests/IP/minute,
+and withdrawal of nowcast and satellite IR. Some general FAQ statements differ;
+this integration follows the specific Weather Maps and transition documentation.
+
+The free API is intended for personal and educational use, requires no API key,
+and has no availability guarantee. Review its
+[terms and attribution requirements](https://www.rainviewer.com/api.html) before
+redistributing or using the project commercially. When radar presentation is
+added, it must visibly credit **Weather data by RainViewer** and link to the
+provider. This repository's source availability does not relicense the provider's
+data. Automated tests use controlled responses and generated images, with no
+live provider calls or downloaded radar imagery checked into Git.
 
 ## Dependency injection
 
@@ -299,6 +390,14 @@ on the local machine; repository and ViewModel tests use in-memory fakes. UI tes
 use controlled states, and the activity integration tests replace the real
 repository. Instrumented database tests use Android SQLite and do not require
 Internet access.
+
+Radar tests cover immutable encoded images and ordered snapshots, manifest
+validation, provider URL construction, request spacing/cooldowns and HTTP body
+limits/cancellation with MockWebServer. Repository tests verify atomic publication,
+reuse, location isolation and failure preservation. Real filesystem tests cover
+reopening, eviction, corruption and interrupted writes. Android instrumentation
+checks actual PNG decoding, coverage classification and complete sequence
+persistence with generated images. No live network is required for these tests.
 
 ## Development workflow
 
