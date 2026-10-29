@@ -21,6 +21,6 @@ class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
-        WeatherWidgetScheduler.stop(context)
+        WeatherWidgetScheduler.stopIfUnused(context)
     }
 }

@@ -1,6 +1,11 @@
 package io.github.demiterhugo.weatherflow.widget
 
 import android.content.Context
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
+import android.content.ComponentName
+import io.github.demiterhugo.weatherflow.widget.glance.WeatherWidgetReceiver
+import io.github.demiterhugo.weatherflow.widget.remote.RemoteWeatherWidgetReceiver
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.Configuration
 import androidx.work.NetworkType
@@ -16,6 +21,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [26, 37])
@@ -50,9 +56,44 @@ class WeatherWidgetSchedulerTest {
     @Test
     fun removingLastWidgetCancelsPeriodicWork() {
         WeatherWidgetScheduler.start(context)
-        WeatherWidgetScheduler.stop(context)
+        WeatherWidgetScheduler.stopIfUnused(context)
         val work = manager.getWorkInfosForUniqueWork(WeatherWidgetScheduler.PERIODIC_WORK).get(10, TimeUnit.SECONDS)
 
         assertEquals(WorkInfo.State.CANCELLED, work.single().state)
     }
+
+    @Config(sdk = [37])
+    @Test
+    fun removingGlanceKeepsScheduleWhenRemoteStillExists() {
+        bind(RemoteWeatherWidgetReceiver::class.java)
+        WeatherWidgetScheduler.start(context)
+        WeatherWidgetReceiver().onDisabled(context)
+        assertEquals(WorkInfo.State.ENQUEUED, periodicState())
+    }
+
+    @Config(sdk = [37])
+    @Test
+    fun removingRemoteKeepsScheduleWhenGlanceStillExists() {
+        bind(WeatherWidgetReceiver::class.java)
+        WeatherWidgetScheduler.start(context)
+        RemoteWeatherWidgetReceiver().onDisabled(context)
+        assertEquals(WorkInfo.State.ENQUEUED, periodicState())
+    }
+
+    @Config(sdk = [37])
+    @Test
+    fun removingFinalRemoteWidgetCancelsSchedule() {
+        WeatherWidgetScheduler.start(context)
+        RemoteWeatherWidgetReceiver().onDisabled(context)
+        assertEquals(WorkInfo.State.CANCELLED, periodicState())
+    }
+
+    private fun bind(type: Class<*>) {
+        shadowOf(AppWidgetManager.getInstance(context)).addBoundWidget(
+            1, AppWidgetProviderInfo().apply { provider = ComponentName(context, type) },
+        )
+    }
+
+    private fun periodicState() = manager.getWorkInfosForUniqueWork(WeatherWidgetScheduler.PERIODIC_WORK)
+        .get(10, TimeUnit.SECONDS).single().state
 }

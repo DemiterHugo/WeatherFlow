@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Remote Compose's manifest requires API 29. Its renderer is isolated behind API 37
+         checks; this exception preserves the app/Glance API 26 baseline. See README. -->
+    <uses-sdk tools:overrideLibrary="androidx.compose.remote.creation.compose" />
     <application>
+        <receiver
+            android:name=".remote.RemoteWeatherWidgetReceiver"
+            android:enabled="@bool/remote_widget_enabled"
+            android:exported="true"
+            android:label="@string/remote_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/remote_weather_widget_info" />
+        </receiver>
         <receiver
             android:name=".glance.WeatherWidgetReceiver"
             android:exported="true"

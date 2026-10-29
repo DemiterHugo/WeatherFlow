@@ -10,6 +10,7 @@
     <string name="weather_location_denied">Location permission was denied. Your selected location is unchanged.</string>
     <string name="weather_location_failed">We couldn’t obtain or save your location. Check location settings and try again.</string>
     <string name="weather_add_widget">Add Glance widget</string>
+    <string name="weather_add_remote_widget">Add Remote Compose widget (experimental)</string>
     <string name="weather_loading">Loading weather…</string>
     <string name="weather_current_conditions">Current conditions</string>
     <string name="weather_temperature">%1$s °C</string>

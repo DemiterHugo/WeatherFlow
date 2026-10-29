@@ -1,4 +1,7 @@
 <resources>
+    <string name="remote_widget_name" translatable="false">WeatherFlow · Remote Compose</string>
+    <string name="remote_widget_description">Experimental weather widget for Android 17+. Uses your shared saved location.</string>
+    <string name="remote_widget_unavailable">The experimental Remote Compose document could not be created. Try again or open the app.</string>
     <string name="widget_name" translatable="false">WeatherFlow · Glance</string>
     <string name="widget_description">Weather for Barcelona or your saved device location. Resize for more details.</string>
     <string name="widget_barcelona">Barcelona</string>

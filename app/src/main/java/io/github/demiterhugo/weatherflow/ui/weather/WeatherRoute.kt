@@ -4,6 +4,7 @@ import android.Manifest
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -15,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.demiterhugo.weatherflow.widget.WeatherWidgetScheduler
 import io.github.demiterhugo.weatherflow.widget.glance.WeatherWidgetReceiver
+import io.github.demiterhugo.weatherflow.widget.remote.RemoteWeatherWidgetReceiver
 
 @Composable
 fun WeatherRoute(viewModel: WeatherViewModel) {
@@ -43,6 +45,9 @@ fun WeatherRoute(viewModel: WeatherViewModel) {
         onUseBarcelona = viewModel::useBarcelona,
         onAddWidget = if (widgetManager.isRequestPinAppWidgetSupported) {
             { widgetManager.requestPinAppWidget(ComponentName(context, WeatherWidgetReceiver::class.java), null, null) }
+        } else null,
+        onAddRemoteWidget = if (Build.VERSION.SDK_INT >= 37 && widgetManager.isRequestPinAppWidgetSupported) {
+            { widgetManager.requestPinAppWidget(ComponentName(context, RemoteWeatherWidgetReceiver::class.java), null, null) }
         } else null,
     )
 }

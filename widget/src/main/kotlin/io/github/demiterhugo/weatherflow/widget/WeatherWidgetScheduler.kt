@@ -51,4 +51,8 @@ object WeatherWidgetScheduler {
         manager.cancelUniqueWork(REFRESH_WORK)
         manager.cancelUniqueWork(RENDER_WORK)
     }
+
+    internal fun stopIfUnused(context: Context) {
+        if (!WeatherWidgetRegistry.hasWidgets(context)) stop(context)
+    }
 }

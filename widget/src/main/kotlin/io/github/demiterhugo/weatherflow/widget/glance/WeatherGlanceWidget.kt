@@ -6,17 +6,18 @@ import androidx.core.net.toUri
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
-import androidx.glance.currentState
 import dagger.hilt.android.EntryPointAccessors
 import io.github.demiterhugo.weatherflow.widget.WidgetEntryPoint
 import io.github.demiterhugo.weatherflow.widget.WidgetWeatherReader
+import io.github.demiterhugo.weatherflow.widget.presentation.WidgetStatus
+import io.github.demiterhugo.weatherflow.widget.presentation.WidgetStatusStorage
+import io.github.demiterhugo.weatherflow.widget.presentation.toText
 
 class WeatherGlanceWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Responsive(setOf(COMPACT_SIZE, EXPANDED_SIZE))
@@ -30,7 +31,9 @@ class WeatherGlanceWidget : GlanceAppWidget() {
         val attributionIntent = Intent(Intent.ACTION_VIEW, "https://open-meteo.com/".toUri())
         provideContent {
             val snapshot by remember { reader.observe() }.collectAsState(initial)
-            val status = WidgetStatus.from(currentState<Preferences>(), snapshot.location)
+            val status by remember(snapshot.location) {
+                WidgetStatusStorage.observe(context, snapshot.location)
+            }.collectAsState(WidgetStatus(location = snapshot.location))
             WeatherWidgetContent(
                 text = snapshot.toText(context, status),
                 openApp = actionStartActivity(launchIntent),

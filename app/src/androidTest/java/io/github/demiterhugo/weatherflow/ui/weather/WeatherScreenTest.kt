@@ -167,6 +167,28 @@ class WeatherScreenTest {
         composeRule.runOnIdle { assertEquals(1, clicks) }
     }
 
+    @Test
+    fun remoteWidgetButtonReachesItsOwnPinRequestCallback() {
+        var clicks = 0
+        composeRule.setContent {
+            WeatherFlowTheme(dynamicColor = false) {
+                WeatherScreen(
+                    WeatherUiState(weather = testWeather, isReadingCache = false), {}, {},
+                    onAddRemoteWidget = { clicks++ },
+                )
+            }
+        }
+        scrollToTag("weather_add_remote_widget")
+        composeRule.onNodeWithTag("weather_add_remote_widget").performClick()
+        composeRule.runOnIdle { assertEquals(1, clicks) }
+    }
+
+    @Test
+    fun unsupportedRemotePinningDoesNotShowAnInactiveButton() {
+        showScreen(WeatherUiState(weather = testWeather, isReadingCache = false))
+        composeRule.onNodeWithTag("weather_add_remote_widget").assertDoesNotExist()
+    }
+
     private fun showScreen(
         state: WeatherUiState,
         onRefresh: () -> Unit = {},

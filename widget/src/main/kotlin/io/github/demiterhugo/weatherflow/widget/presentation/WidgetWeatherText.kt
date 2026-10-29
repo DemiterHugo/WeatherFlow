@@ -1,4 +1,4 @@
-package io.github.demiterhugo.weatherflow.widget.glance
+package io.github.demiterhugo.weatherflow.widget.presentation
 
 import android.content.Context
 import io.github.demiterhugo.weatherflow.domain.model.WeatherCondition
@@ -10,7 +10,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** Presentation values are separate from Glance, which keeps content tests independent of Android. */
+/** Both renderers use the same localized values, units, attribution and error messages. */
 internal data class WidgetWeatherText(
     val location: String,
     val temperature: String?,

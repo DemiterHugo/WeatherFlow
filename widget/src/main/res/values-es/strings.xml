@@ -1,4 +1,6 @@
 <resources>
+    <string name="remote_widget_description">Widget meteorológico experimental para Android 17 o superior. Usa tu ubicación guardada.</string>
+    <string name="remote_widget_unavailable">No se ha podido crear el documento experimental de Remote Compose. Reintenta o abre la app.</string>
     <string name="widget_description">Tiempo de Barcelona o de tu ubicación guardada. Amplíalo para ver más detalles.</string>
     <string name="widget_barcelona">Barcelona</string>
     <string name="widget_device_location">Ubicación guardada</string>

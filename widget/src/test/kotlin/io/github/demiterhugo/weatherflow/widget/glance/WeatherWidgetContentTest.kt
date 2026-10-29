@@ -1,5 +1,7 @@
 package io.github.demiterhugo.weatherflow.widget.glance
 
+import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
+
 import android.content.Intent
 import android.net.Uri
 import android.content.Context

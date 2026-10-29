@@ -31,6 +31,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import io.github.demiterhugo.weatherflow.widget.R
+import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
 
 internal val COMPACT_SIZE = DpSize(180.dp, 220.dp)
 internal val EXPANDED_SIZE = DpSize(300.dp, 300.dp)

@@ -1,5 +1,7 @@
 package io.github.demiterhugo.weatherflow.widget.glance
 
+import io.github.demiterhugo.weatherflow.widget.presentation.WidgetStatus
+
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.preferencesOf

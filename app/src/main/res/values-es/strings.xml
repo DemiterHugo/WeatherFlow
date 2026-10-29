@@ -9,6 +9,7 @@
     <string name="weather_location_denied">Se ha denegado el permiso de ubicación. Se conserva la ubicación seleccionada.</string>
     <string name="weather_location_failed">No se ha podido obtener o guardar tu ubicación. Revisa los ajustes de ubicación y vuelve a intentarlo.</string>
     <string name="weather_add_widget">Añadir widget Glance</string>
+    <string name="weather_add_remote_widget">Añadir widget Remote Compose (experimental)</string>
     <string name="weather_loading">Cargando el tiempo…</string>
     <string name="weather_current_conditions">Condiciones actuales</string>
     <string name="weather_temperature">%1$s °C</string>

@@ -8,9 +8,10 @@ widgets, with an animated rain radar as the intended demonstration.
 The project currently contains a Compose weather screen with MVVM, a modular
 build structure, Hilt dependency injection, tested domain models, and an
 Open-Meteo weather repository backed by a persistent Room cache, and a resizable
-Glance weather widget. Barcelona is the default location; the app can save an
-approximate device location for both screen and widgets. Remote Compose and rain
-radar rendering will be implemented incrementally.
+Glance weather widget and an experimental Remote Compose weather widget.
+Barcelona is the default location; the app can save an approximate device location
+for the screen and both widget providers. Rain radar rendering will be implemented
+incrementally.
 
 ## Modules
 
@@ -101,11 +102,68 @@ jobs retry with exponential backoff, up to three attempts. Removing the final
 widget cancels its periodic, fetch and render work. The provider disables platform
 periodic updates to avoid a second timer.
 
-Progress and refresh errors are saved per widget and scoped to the requested
-coordinates. Failed updates retain cached readings and their original timestamp;
+Progress and refresh errors are persisted in a shared Preferences DataStore and
+scoped to the requested coordinates. Failed updates retain cached readings and their original timestamp;
 an empty cache shows a message and refresh action. Network requests run in a
 CoroutineWorker, outside broadcast callbacks. Hilt entry points supply the shared
 repositories to system-created workers and widgets.
+
+## Experimental Remote Compose widget
+
+On Android 17 (API 37) and later, add **WeatherFlow · Remote Compose** from the
+launcher picker or **Add Remote Compose widget (experimental)** in the app.
+Its compact and expanded layouts use the same localized presentation values,
+weather cache, selected location, units, valid time and Open-Meteo attribution as
+Glance. Actions refresh the weather, open the app and open the provider's website.
+The layout is regenerated after resizing; expanding to 300 × 300 dp adds humidity,
+wind and the model-estimate label. The receiver only schedules work.
+
+The `remote` package captures a Remote Compose document in a CoroutineWorker and
+sends it through Android's `RemoteViews.DrawInstructions`. It uses the platform
+widget profile for document API level 7. This does not embed a player in the app
+or convert the widget to a bitmap. The animated radar is a subsequent step.
+
+Both providers share one unique hourly schedule and one fetch queue. Removing
+either provider keeps the schedule while the other still has installed instances.
+The final removal cancels the shared work. Foreground cache/location changes render
+both providers without another HTTP request. Rendering is serialized so a slower
+capture cannot overwrite a newer render. Glance observes the shared progress store
+during active sessions; Remote Compose receives a new document on each update.
+
+### Compatibility and alpha integration
+
+Remote Compose is pinned to **1.0.0-alpha22**, an experimental release. Google's
+[widget introduction](https://developer.android.com/blog/posts/remote-compose-gaming-widgets)
+recommends Android 17 or later and explains the limitations on older Android
+versions. WeatherFlow enables this provider only on API 37+, through a versioned
+resource and runtime checks; the app and Glance keep their API 26 minimum.
+
+The creation-compose dependency declares API 29 as its minimum. A manifest
+`tools:overrideLibrary` exception applies only to that dependency. Its document
+capture and transport are isolated behind API 37 checks and `@RequiresApi(37)`;
+the dependency manifest has no startup component. Compatibility tests check the
+older-device paths and provider visibility. This exception must be reviewed when
+updating the library.
+
+`RemoteWeatherDocument` contains the restricted profile and action-ID calls,
+with narrowly scoped lint suppressions. In alpha22, the built-in widget profile's
+factory drops the `WriterEvents` callback, causing `pendingIntentAction` capture
+to fail. The adapter preserves the API-7 widget profile metadata and forwards the
+callback to `RemoteComposeWriterAndroid`. Document tests cover all three actions
+and verify that refresh is disabled while an update is running. The workaround
+must be reviewed against future [Remote Compose releases](https://developer.android.com/jetpack/androidx/releases/compose-remote).
+
+If document creation fails, the experimental widget shows an explicit error with
+refresh/open actions, and Glance can still receive updates. Enabling the provider
+by Android version does not replace testing it in the device's actual launcher.
+
+This integration was manually checked in the Android 17 emulator's Pixel launcher
+and One UI on a Samsung Galaxy S25 Ultra running Android 17. Checks included
+pinning and displaying the widget; the emulator also covered refresh, opening the
+app and resizing to the expanded layout. The same APK was installed and launched
+on an Android 9 emulator to check compatibility below the dependency's declared
+API 29 minimum. API 26 paths are covered by Robolectric, rather than a physical
+Android 8 device.
 
 ## Weather domain
 
@@ -230,7 +288,11 @@ and attribution, including actual RemoteViews inflation during refresh. They use
 Robolectric 4.17 with Android APIs 26 and 37 and the test-only
 JVM options recommended in its [setup guide](https://robolectric.org/getting-started/).
 Screen tests also exercise location actions, permission-denial messaging and the
-widget-pinning callback.
+separate widget-pinning callbacks. Registry and scheduling tests cover Glance-only,
+Remote-only and final-removal cases. Resource tests exclude Remote Compose on APIs
+26, 35 and 36. Remote document tests capture compact, expanded, loading and error
+content and verify immutable, explicit, per-widget action intents. Shared-status
+tests run on APIs 26 and 37.
 
 Automated tests do not call the live weather API. Network tests use MockWebServer
 on the local machine; repository and ViewModel tests use in-memory fakes. UI tests

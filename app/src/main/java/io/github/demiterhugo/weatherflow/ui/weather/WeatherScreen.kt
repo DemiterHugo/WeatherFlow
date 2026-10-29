@@ -46,6 +46,7 @@ fun WeatherScreen(
     onUseDeviceLocation: () -> Unit = {},
     onUseBarcelona: () -> Unit = {},
     onAddWidget: (() -> Unit)? = null,
+    onAddRemoteWidget: (() -> Unit)? = null,
 ) {
     val locale = LocalConfiguration.current.locales[0]
 
@@ -157,6 +158,14 @@ fun WeatherScreen(
                 if (onAddWidget != null) {
                     TextButton(onClick = onAddWidget, modifier = Modifier.testTag("weather_add_widget")) {
                         Text(stringResource(R.string.weather_add_widget))
+                    }
+                }
+            }
+
+            if (onAddRemoteWidget != null) {
+                item {
+                    TextButton(onClick = onAddRemoteWidget, modifier = Modifier.testTag("weather_add_remote_widget")) {
+                        Text(stringResource(R.string.weather_add_remote_widget))
                     }
                 }
             }
