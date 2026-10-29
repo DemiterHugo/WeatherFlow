@@ -16,7 +16,7 @@ private fun WeatherContentPreview() {
         WeatherScreen(
             state = WeatherUiState(
                 weather = CurrentWeather(
-                    Coordinates(40.4168, -3.7038), 18.5, 17.0, 65, 3.2,
+                    Coordinates(41.3874, 2.1686), 18.5, 17.0, 65, 3.2,
                     WeatherCondition.PARTLY_CLOUDY, Instant.parse("2026-10-29T12:00:00Z"),
                 ),
                 isReadingCache = false,

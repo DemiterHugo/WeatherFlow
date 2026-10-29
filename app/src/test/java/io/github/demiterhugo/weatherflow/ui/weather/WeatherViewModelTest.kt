@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModelStore
 import io.github.demiterhugo.weatherflow.domain.model.Coordinates
 import io.github.demiterhugo.weatherflow.domain.model.CurrentWeather
 import io.github.demiterhugo.weatherflow.domain.model.WeatherCondition
+import io.github.demiterhugo.weatherflow.domain.model.WeatherLocation
+import io.github.demiterhugo.weatherflow.domain.repository.DeviceLocationProvider
+import io.github.demiterhugo.weatherflow.domain.repository.WeatherLocationRepository
 import io.github.demiterhugo.weatherflow.domain.repository.WeatherRepository
 import java.io.IOException
 import java.time.Instant
@@ -30,12 +33,17 @@ class WeatherViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val store = ViewModelStore()
-    private val madrid = Coordinates(40.4168, -3.7038)
+    private val barcelona = Coordinates(41.3874, 2.1686)
     private val weather = CurrentWeather(
-        madrid, 18.5, 17.0, 65, 3.2, WeatherCondition.PARTLY_CLOUDY,
+        barcelona, 18.5, 17.0, 65, 3.2, WeatherCondition.PARTLY_CLOUDY,
         Instant.parse("2026-10-29T12:00:00Z"),
     )
     private val repository = FakeWeatherRepository()
+    private val locations = FakeLocationRepository()
+    private var locate: suspend () -> Coordinates = { Coordinates(48.8566, 2.3522) }
+    private val deviceLocation = object : DeviceLocationProvider {
+        override suspend fun currentCoordinates() = locate()
+    }
 
     @After
     fun tearDown() {
@@ -43,7 +51,7 @@ class WeatherViewModelTest {
     }
 
     @Test
-    fun startsWithLoadingAndRequestsMadridExactlyOnce() = runTest {
+    fun startsWithLoadingAndRequestsBarcelonaExactlyOnce() = runTest {
         val gate = CompletableDeferred<Unit>()
         repository.onRefresh = { gate.await() }
         val viewModel = createViewModel()
@@ -51,8 +59,8 @@ class WeatherViewModelTest {
         assertTrue(viewModel.uiState.value.isLoading)
         runCurrent()
 
-        assertEquals(listOf(madrid), repository.requests)
-        assertEquals(listOf(madrid), repository.observations)
+        assertEquals(listOf(barcelona), repository.requests)
+        assertEquals(listOf(barcelona), repository.observations)
         assertTrue(viewModel.uiState.value.isRefreshing)
         assertNull(viewModel.uiState.value.weather)
     }
@@ -185,8 +193,106 @@ class WeatherViewModelTest {
         assertFalse(viewModel.uiState.value.refreshFailed)
     }
 
-    private fun createViewModel(): WeatherViewModel = WeatherViewModel(repository).also {
+    @Test
+    fun deviceLocationIsPersistedAndRefreshesSelectedCoordinates() = runTest {
+        val viewModel = createViewModel()
+        runCurrent()
+        viewModel.useDeviceLocation()
+        runCurrent()
+
+        val selected = WeatherLocation.Device(Coordinates(48.8566, 2.3522))
+        assertEquals(selected, locations.selected.value)
+        assertEquals(selected, viewModel.uiState.value.location)
+        assertEquals(listOf(barcelona, selected.coordinates), repository.requests)
+        assertFalse(viewModel.uiState.value.isLocating)
+    }
+
+    @Test
+    fun switchingLocationClearsPreviousWeatherAndCancelsItsRefresh() = runTest {
+        repository.cached.value = weather
+        var cancelled = false
+        repository.onRefresh = { try { awaitCancellation() } finally { cancelled = true } }
+        val viewModel = createViewModel()
+        runCurrent()
+        repository.cached.value = null
+        viewModel.useDeviceLocation()
+        runCurrent()
+
+        assertTrue(cancelled)
+        assertNull(viewModel.uiState.value.weather)
+        assertEquals(Coordinates(48.8566, 2.3522), repository.requests.last())
+    }
+
+    @Test
+    fun unavailableLocationPreservesSelectionAndWeather() = runTest {
+        repository.cached.value = weather
+        locate = { throw IOException("Location disabled") }
+        val viewModel = createViewModel()
+        runCurrent()
+        viewModel.useDeviceLocation()
+        runCurrent()
+
+        assertEquals(WeatherLocation.Barcelona, viewModel.uiState.value.location)
+        assertEquals(weather, viewModel.uiState.value.weather)
+        assertTrue(viewModel.uiState.value.locationFailed)
+        assertFalse(viewModel.uiState.value.isLocating)
+        assertEquals(1, repository.requests.size)
+    }
+
+    @Test
+    fun deniedPermissionDoesNotStartLocationLookup() = runTest {
+        locate = { error("Permission denial must not access location") }
+        val viewModel = createViewModel()
+        runCurrent()
+        viewModel.locationPermissionDenied()
+
+        assertTrue(viewModel.uiState.value.locationPermissionDenied)
+        assertEquals(WeatherLocation.Barcelona, locations.selected.value)
+    }
+
+    @Test
+    fun repeatedLocationTapsStartOneLookupAndBarcelonaCancelsIt() = runTest {
+        var requests = 0
+        var cancelled = false
+        locate = {
+            requests++
+            try { awaitCancellation() } finally { cancelled = true }
+        }
+        val viewModel = createViewModel()
+        runCurrent()
+        repeat(3) { viewModel.useDeviceLocation() }
+        runCurrent()
+        assertEquals(1, requests)
+        assertTrue(viewModel.uiState.value.isLocating)
+
+        viewModel.useBarcelona()
+        runCurrent()
+        assertTrue(cancelled)
+        assertFalse(viewModel.uiState.value.isLocating)
+        assertFalse(viewModel.uiState.value.locationFailed)
+    }
+
+    @Test
+    fun savedDeviceSelectionIsRestoredAndCanReturnToBarcelona() = runTest {
+        locations.selected.value = WeatherLocation.Device(Coordinates(48.8566, 2.3522))
+        val viewModel = createViewModel()
+        runCurrent()
+        assertEquals(locations.selected.value, viewModel.uiState.value.location)
+
+        viewModel.useBarcelona()
+        runCurrent()
+        assertEquals(WeatherLocation.Barcelona, locations.selected.value)
+        assertEquals(barcelona, repository.requests.last())
+    }
+
+    private fun createViewModel(): WeatherViewModel = WeatherViewModel(repository, locations, deviceLocation).also {
         store.put("weather", it)
+    }
+
+    private class FakeLocationRepository : WeatherLocationRepository {
+        val selected = MutableStateFlow<WeatherLocation>(WeatherLocation.Barcelona)
+        override fun observeLocation(): Flow<WeatherLocation> = selected
+        override suspend fun selectLocation(location: WeatherLocation) { selected.value = location }
     }
 
     private class FakeWeatherRepository : WeatherRepository {

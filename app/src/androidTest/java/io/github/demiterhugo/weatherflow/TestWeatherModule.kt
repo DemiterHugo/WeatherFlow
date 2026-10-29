@@ -5,6 +5,10 @@ import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import io.github.demiterhugo.weatherflow.data.di.WeatherRepositoryModule
+import io.github.demiterhugo.weatherflow.data.di.WeatherLocationModule
+import io.github.demiterhugo.weatherflow.domain.model.WeatherLocation
+import io.github.demiterhugo.weatherflow.domain.repository.WeatherLocationRepository
+import io.github.demiterhugo.weatherflow.domain.repository.DeviceLocationProvider
 import io.github.demiterhugo.weatherflow.domain.model.Coordinates
 import io.github.demiterhugo.weatherflow.domain.model.CurrentWeather
 import io.github.demiterhugo.weatherflow.domain.model.WeatherCondition
@@ -15,7 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 internal val testWeather = CurrentWeather(
-    coordinates = Coordinates(40.4168, -3.7038),
+    coordinates = Coordinates(41.3874, 2.1686),
     temperatureCelsius = 18.5,
     feelsLikeCelsius = 17.0,
     humidityPercent = 65,
@@ -25,7 +29,7 @@ internal val testWeather = CurrentWeather(
 )
 
 @Module
-@TestInstallIn(components = [SingletonComponent::class], replaces = [WeatherRepositoryModule::class])
+@TestInstallIn(components = [SingletonComponent::class], replaces = [WeatherRepositoryModule::class, WeatherLocationModule::class])
 object TestWeatherModule {
     @Provides
     @Singleton
@@ -33,6 +37,19 @@ object TestWeatherModule {
 
     @Provides
     fun provideWeatherRepository(repository: TestWeatherRepository): WeatherRepository = repository
+
+    @Provides
+    @Singleton
+    fun provideLocations(): WeatherLocationRepository = object : WeatherLocationRepository {
+        private val location = MutableStateFlow<WeatherLocation>(WeatherLocation.Barcelona)
+        override fun observeLocation(): Flow<WeatherLocation> = location
+        override suspend fun selectLocation(location: WeatherLocation) { this.location.value = location }
+    }
+
+    @Provides
+    fun provideDeviceLocation(): DeviceLocationProvider = object : DeviceLocationProvider {
+        override suspend fun currentCoordinates() = Coordinates(48.8566, 2.3522)
+    }
 }
 
 class TestWeatherRepository : WeatherRepository {

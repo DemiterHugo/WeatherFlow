@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import io.github.demiterhugo.weatherflow.R
 import io.github.demiterhugo.weatherflow.domain.model.CurrentWeather
 import io.github.demiterhugo.weatherflow.domain.model.WeatherCondition
+import io.github.demiterhugo.weatherflow.domain.model.WeatherLocation
 import java.time.ZoneId
 import java.util.Locale
 
@@ -42,6 +43,9 @@ fun WeatherScreen(
     onRefresh: () -> Unit,
     onAttributionClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onUseDeviceLocation: () -> Unit = {},
+    onUseBarcelona: () -> Unit = {},
+    onAddWidget: (() -> Unit)? = null,
 ) {
     val locale = LocalConfiguration.current.locales[0]
 
@@ -56,15 +60,34 @@ fun WeatherScreen(
                 Column(modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth()) {
                     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        stringResource(R.string.weather_city_madrid),
+                        stringResource(if (state.location is WeatherLocation.Device) R.string.weather_location_device else R.string.weather_city_barcelona),
                         modifier = Modifier.semantics { heading() },
                         style = MaterialTheme.typography.headlineLarge,
                     )
                     Text(
-                        stringResource(R.string.weather_demo_location),
+                        stringResource(if (state.location is WeatherLocation.Device) R.string.weather_location_saved else R.string.weather_default_location),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    TextButton(
+                        onClick = onUseDeviceLocation,
+                        enabled = !state.isLocating,
+                        modifier = Modifier.testTag("weather_use_location"),
+                    ) {
+                        Text(stringResource(if (state.isLocating) R.string.weather_locating else R.string.weather_use_location))
+                    }
+                    if (state.location is WeatherLocation.Device) {
+                        TextButton(onClick = onUseBarcelona, modifier = Modifier.testTag("weather_use_barcelona")) {
+                            Text(stringResource(R.string.weather_use_barcelona))
+                        }
+                    }
+                    if (state.locationPermissionDenied || state.locationFailed) {
+                        Text(
+                            stringResource(if (state.locationPermissionDenied) R.string.weather_location_denied else R.string.weather_location_failed),
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                 }
             }
 
@@ -127,6 +150,14 @@ fun WeatherScreen(
                         state.refreshFailed || state.cacheFailed -> R.string.weather_retry
                         else -> R.string.weather_refresh
                     }))
+                }
+            }
+
+            item {
+                if (onAddWidget != null) {
+                    TextButton(onClick = onAddWidget, modifier = Modifier.testTag("weather_add_widget")) {
+                        Text(stringResource(R.string.weather_add_widget))
+                    }
                 }
             }
 

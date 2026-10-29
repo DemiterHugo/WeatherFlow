@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.demiterhugo.weatherflow.R
+import io.github.demiterhugo.weatherflow.domain.model.WeatherLocation
+import io.github.demiterhugo.weatherflow.domain.model.Coordinates
 import io.github.demiterhugo.weatherflow.testWeather
 import io.github.demiterhugo.weatherflow.ui.theme.WeatherFlowTheme
 import org.junit.Assert.assertEquals
@@ -42,7 +44,7 @@ class WeatherScreenTest {
     fun contentShowsWeatherAndConvertsWindForDisplay() {
         showScreen(WeatherUiState(weather = testWeather, isReadingCache = false))
 
-        composeRule.onNodeWithText("Madrid").assertIsDisplayed()
+        composeRule.onNodeWithText("Barcelona").assertIsDisplayed()
         composeRule.onNodeWithTag("weather_temperature").assertIsDisplayed()
         val windLabel = context.getString(R.string.weather_wind)
         composeRule.onNodeWithTag("weather_content").performScrollToNode(hasText(windLabel))
@@ -119,6 +121,50 @@ class WeatherScreenTest {
 
         scrollToTag("weather_refresh")
         composeRule.onNodeWithTag("weather_refresh").assertIsDisplayed()
+    }
+
+    @Test
+    fun permissionDenialLeavesBarcelonaVisibleAndExplainsResult() {
+        showScreen(WeatherUiState(isReadingCache = false, locationPermissionDenied = true))
+        composeRule.onNodeWithText("Barcelona").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.weather_location_denied)).assertIsDisplayed()
+    }
+
+    @Test
+    fun deviceSelectionOffersBothLocationActions() {
+        var currentClicks = 0
+        var barcelonaClicks = 0
+        composeRule.setContent {
+            WeatherFlowTheme(dynamicColor = false) {
+                WeatherScreen(
+                    WeatherUiState(location = WeatherLocation.Device(Coordinates(48.8566, 2.3522))), {}, {},
+                    onUseDeviceLocation = { currentClicks++ }, onUseBarcelona = { barcelonaClicks++ },
+                )
+            }
+        }
+        composeRule.onNodeWithText(context.getString(R.string.weather_location_device)).assertIsDisplayed()
+        composeRule.onNodeWithTag("weather_use_location").performClick()
+        composeRule.onNodeWithTag("weather_use_barcelona").performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, currentClicks)
+            assertEquals(1, barcelonaClicks)
+        }
+    }
+
+    @Test
+    fun widgetButtonReachesPinRequestCallback() {
+        var clicks = 0
+        composeRule.setContent {
+            WeatherFlowTheme(dynamicColor = false) {
+                WeatherScreen(
+                    WeatherUiState(weather = testWeather, isReadingCache = false), {}, {},
+                    onAddWidget = { clicks++ },
+                )
+            }
+        }
+        scrollToTag("weather_add_widget")
+        composeRule.onNodeWithTag("weather_add_widget").performClick()
+        composeRule.runOnIdle { assertEquals(1, clicks) }
     }
 
     private fun showScreen(

@@ -1,7 +1,15 @@
 <resources>
     <string name="app_name" translatable="false">WeatherFlow</string>
-    <string name="weather_city_madrid">Madrid</string>
-    <string name="weather_demo_location">Demo location</string>
+    <string name="weather_city_barcelona">Barcelona</string>
+    <string name="weather_default_location">Default location</string>
+    <string name="weather_location_device">My location</string>
+    <string name="weather_location_saved">Saved device location. Use the button to update it.</string>
+    <string name="weather_use_location">Use my location</string>
+    <string name="weather_use_barcelona">Use Barcelona</string>
+    <string name="weather_locating">Finding your location…</string>
+    <string name="weather_location_denied">Location permission was denied. Your selected location is unchanged.</string>
+    <string name="weather_location_failed">We couldn’t obtain or save your location. Check location settings and try again.</string>
+    <string name="weather_add_widget">Add Glance widget</string>
     <string name="weather_loading">Loading weather…</string>
     <string name="weather_current_conditions">Current conditions</string>
     <string name="weather_temperature">%1$s °C</string>

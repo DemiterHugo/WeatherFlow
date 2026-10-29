@@ -37,7 +37,7 @@ class ApplicationStartupTest {
 
     @Test
     fun mainActivityDisplaysWeatherFromInjectedRepository() {
-        composeRule.onNodeWithText("Madrid").assertIsDisplayed()
+        composeRule.onNodeWithText("Barcelona").assertIsDisplayed()
         composeRule.onNodeWithTag("weather_temperature").assertTextContains("°C", substring = true)
         composeRule.runOnIdle { assertEquals(1, repository.refreshCount) }
     }
@@ -54,7 +54,7 @@ class ApplicationStartupTest {
     fun activityRecreationRetainsViewModelWithoutAnotherRequest() {
         composeRule.activityRule.scenario.recreate()
 
-        composeRule.onNodeWithText("Madrid").assertIsDisplayed()
+        composeRule.onNodeWithText("Barcelona").assertIsDisplayed()
         composeRule.runOnIdle {
             assertEquals(1, repository.refreshCount)
         }

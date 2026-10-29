@@ -7,9 +7,10 @@ widgets, with an animated rain radar as the intended demonstration.
 
 The project currently contains a Compose weather screen with MVVM, a modular
 build structure, Hilt dependency injection, tested domain models, and an
-Open-Meteo weather repository backed by a persistent Room cache. The screen uses
-Madrid as an explicit demonstration location. Widgets and radar rendering will
-be implemented incrementally.
+Open-Meteo weather repository backed by a persistent Room cache, and a resizable
+Glance weather widget. Barcelona is the default location; the app can save an
+approximate device location for both screen and widgets. Remote Compose and rain
+radar rendering will be implemented incrementally.
 
 ## Modules
 
@@ -56,8 +57,55 @@ have a separate message; retry restarts observation if it previously failed.
 Cancellation is propagated. Provider attribution links to Open-Meteo and identifies
 the data as weather-model estimates.
 
-Madrid is fixed at this stage; the screen does not request device location access
-or provide a city picker yet.
+### Location
+
+Barcelona is selected initially. **Use my location** requests foreground,
+approximate location permission and obtains one fix through Android's location
+APIs. The request is cancellable and limited to 30 seconds. The coordinates are
+saved atomically with Preferences DataStore and shared with every widget. The
+screen labels this as a saved device location, rather than claiming a city name
+without reverse geocoding. **Use Barcelona** restores the default.
+
+Permission denial, disabled location services and storage failures preserve the
+previous selection and display a message. Changing location cancels the previous
+weather request and observation and clears its displayed readings, so one place's
+weather is never shown under another place's label. The app does not request
+background or precise location access. To update the saved position after moving,
+use **Use my location** again in the app; widgets refresh weather at the saved
+coordinates and do not track movement. There is no city search yet.
+
+## Glance widget
+
+Add **WeatherFlow · Glance** from the launcher's widget picker, or use **Add Glance
+widget** in the app when the launcher supports pinning. The compact layout shows
+location, temperature, condition, provider valid time and attribution. Expanding
+to at least 300 × 300 dp also shows humidity, wind in km/h and the model-estimate
+label. The widget supports English/Spanish and light/dark resources, and provides
+Refresh, Open app and provider-link actions. A selector preview is available on
+Android 12 and later; it contains no sample weather reading.
+
+Glance 1.2.0 produces classic RemoteViews, providing the baseline for the future
+Remote Compose comparison. It does not implement the animated radar yet.
+
+Widgets read the same Room repository and DataStore location as the app. An active
+Glance session observes cache/location changes. Foreground changes also enqueue
+a render-only job, so widgets are updated after their composition sessions end.
+No second HTTP request is needed for an app refresh.
+
+WorkManager schedules one unique hourly task while widgets are installed; Android
+may defer it because of network, battery or scheduling constraints. Its initial
+delay is one hour, and installing a widget requests an immediate refresh. Periodic
+ticks and manual refreshes enqueue the same unique fetch job, avoiding overlapping
+widget requests. Manual refreshes can report offline failure immediately; failed
+jobs retry with exponential backoff, up to three attempts. Removing the final
+widget cancels its periodic, fetch and render work. The provider disables platform
+periodic updates to avoid a second timer.
+
+Progress and refresh errors are saved per widget and scoped to the requested
+coordinates. Failed updates retain cached readings and their original timestamp;
+an empty cache shows a message and refresh action. Network requests run in a
+CoroutineWorker, outside broadcast callbacks. Hilt entry points supply the shared
+repositories to system-created workers and widgets.
 
 ## Weather domain
 
@@ -106,9 +154,9 @@ responses cannot replace newer observations. Corrected readings at the same
 timestamp can replace the previous values.
 
 Room's version 1 schema is checked into `data/schemas` for future migration tests.
-The cache has no automatic expiration or background refresh at this stage;
-consumers inspect `observedAt` and explicitly request updates. It is a snapshot
-cache, not a weather-history database.
+The cache has no automatic expiration; consumers inspect `observedAt`. The screen
+requests updates explicitly and widget background work refreshes it while widgets
+are installed. It is a snapshot cache, not a weather-history database.
 
 ### Provider and attribution
 
@@ -133,7 +181,7 @@ pinned in `gradle/libs.versions.toml`.
 
 `WeatherFlowApplication` is the Hilt application root and is registered in the
 manifest. `MainActivity` is an Android entry point. Hilt and KSP are applied to
-`:app` and `:data`. Room also uses KSP; Kotlin Serialization generates the JSON
+`:app`, `:data` and `:widget`. Room also uses KSP; Kotlin Serialization generates the JSON
 serializers. `:domain` remains independent of Hilt and Android.
 
 ## Build and verification
@@ -172,7 +220,17 @@ replace the binding while the concrete data implementation remains internal.
 `WeatherDatabaseTest` exercises actual Room queries, observation,
 isolation between locations, concurrent writes and persistence after reopening
 a database on Android. Each test uses its own temporary database and deletes it
-afterward. `:widget` does not have functional tests yet.
+afterward. Location preference tests verify the default, replacement and
+persistence after reopening storage.
+
+Widget tests verify cache/session observation, switching locations, progress,
+refresh failures and cancellation, and unique hourly scheduling/removal.
+Glance content tests check compact/expanded layouts, empty/error/loading states
+and attribution, including actual RemoteViews inflation during refresh. They use
+Robolectric 4.17 with Android APIs 26 and 37 and the test-only
+JVM options recommended in its [setup guide](https://robolectric.org/getting-started/).
+Screen tests also exercise location actions, permission-denial messaging and the
+widget-pinning callback.
 
 Automated tests do not call the live weather API. Network tests use MockWebServer
 on the local machine; repository and ViewModel tests use in-memory fakes. UI tests
