@@ -6,9 +6,10 @@ widgets, with an animated rain radar as the intended demonstration.
 ## Project status
 
 The project currently contains a working Compose starter application, a modular
-build structure, Hilt dependency injection configured in `:app`, and tested domain
-models with a weather repository contract. Weather data retrieval, widgets and
-radar rendering will be implemented incrementally.
+build structure, Hilt dependency injection, tested domain models, and an
+Open-Meteo weather repository backed by a persistent Room cache. Screens still
+show the starter UI; weather presentation, widgets and radar rendering will be
+implemented incrementally.
 
 ## Modules
 
@@ -58,7 +59,48 @@ not when it was downloaded. Consumers can use it to identify stale data.
 The domain uses Kotlin/JVM, `java.time` and Coroutines Core, with no Android, Hilt
 or network dependencies. Coroutines Core is exposed with Gradle's `api`
 configuration because `Flow` appears in the public repository contract. Repository
-implementations and their behavior tests will be added in `:data`.
+implementations and their behavior tests live in `:data`.
+
+## Weather data and offline cache
+
+`:data` implements `WeatherRepository` using Retrofit, Kotlin Serialization and
+Room. Hilt binds a singleton repository and provides the HTTPS API client and
+database. The data module contributes the Internet permission through manifest
+merging.
+
+Observation reads Room only and does not call the network. An explicit refresh
+requests current conditions from Open-Meteo, validates the response, then stores
+it. Room notifies active collectors, and later collectors can read the saved
+observation after process recreation. Network, decoding, validation and database
+errors propagate to callers; failed refreshes retain the previous valid data.
+Coroutine cancellation is not swallowed.
+
+The API is explicitly requested to return Celsius, meters per second and Unix
+timestamp seconds. Response units are checked before mapping to domain models.
+Cache keys use the requested coordinates, not the weather model's grid-cell
+coordinates. A database transaction compares timestamps before writing, so late
+responses cannot replace newer observations. Corrected readings at the same
+timestamp can replace the previous values.
+
+Room's version 1 schema is checked into `data/schemas` for future migration tests.
+The cache has no automatic expiration or background refresh at this stage;
+consumers inspect `observedAt` and explicitly request updates. It is a snapshot
+cache, not a weather-history database.
+
+### Provider and attribution
+
+Weather data is provided by [Open-Meteo](https://open-meteo.com/), using its
+[Forecast API](https://open-meteo.com/en/docs). Current conditions are estimates
+based on weather models, rather than direct station measurements. `observedAt`
+represents the provider's valid time, not the local download time.
+
+Open-Meteo data is licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). WeatherFlow maps provider
+codes to its own condition categories and stores a subset of the response. The
+free hosted endpoint is intended for non-commercial use and is subject to
+[usage limits and attribution requirements](https://open-meteo.com/en/pricing).
+Weather screens and widgets must carry provider attribution when implemented.
+The rain radar will be integrated separately.
 
 ## Dependency injection
 
@@ -67,10 +109,9 @@ The application uses [Hilt](https://dagger.dev/hilt/gradle-setup.html) with
 pinned in `gradle/libs.versions.toml`.
 
 `WeatherFlowApplication` is the Hilt application root and is registered in the
-manifest. `MainActivity` is an Android entry point. Hilt and KSP are applied only
-to `:app` at this stage; library modules will add their processing dependencies
-when they contain injectable implementations. `:domain` remains independent of
-Hilt and Android.
+manifest. `MainActivity` is an Android entry point. Hilt and KSP are applied to
+`:app` and `:data`. Room also uses KSP; Kotlin Serialization generates the JSON
+serializers. `:domain` remains independent of Hilt and Android.
 
 ## Build and verification
 
@@ -85,17 +126,25 @@ targets Java 17.
 ./gradlew :app:testDebugUnitTest :data:testDebugUnitTest :widget:testDebugUnitTest :domain:test
 ./gradlew :app:lintDebug :data:lintDebug :widget:lintDebug
 ./gradlew :app:connectedDebugAndroidTest
+./gradlew :data:connectedDebugAndroidTest
 ```
 
 - `projects` lists the registered Gradle modules.
 - `assembleDebug` builds debug artifacts; `:domain:build` builds and checks the JVM library.
-- `testDebugUnitTest` and `test` run local unit tests. Domain tests cover model validation and boundary cases; the app also has the generated starter unit test.
+- `testDebugUnitTest` and `test` run local unit tests. Domain tests cover model validation; data tests cover HTTP requests, decoding, mappings and repository behavior using controlled responses.
 - `lintDebug` runs Android static analysis on the debug variant.
 - `connectedDebugAndroidTest` installs the debug app and test APK on connected devices and runs instrumentation tests. Set `ANDROID_SERIAL` to select a specific device when several are connected.
 
 `ApplicationStartupTest` launches the production `MainActivity` and checks that it
 uses `WeatherFlowApplication`, exercising the Hilt application and activity
-startup path. `:data` and `:widget` do not have functional tests yet.
+startup path. `WeatherDatabaseTest` exercises actual Room queries, observation,
+isolation between locations, concurrent writes and persistence after reopening
+a database on Android. Each test uses its own temporary database and deletes it
+afterward. `:widget` does not have functional tests yet.
+
+Automated tests do not call the live weather API. Network tests use MockWebServer
+on the local machine; repository tests use in-memory fakes. Instrumented database
+tests use Android SQLite and do not require Internet access.
 
 ## Development workflow
 
