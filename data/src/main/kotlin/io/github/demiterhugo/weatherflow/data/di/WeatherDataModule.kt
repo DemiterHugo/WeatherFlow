@@ -35,8 +35,8 @@ internal object WeatherDataModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal abstract class WeatherRepositoryModule {
+abstract class WeatherRepositoryModule {
     @Binds
     @Singleton
-    abstract fun bindWeatherRepository(repository: OfflineFirstWeatherRepository): WeatherRepository
+    internal abstract fun bindWeatherRepository(repository: OfflineFirstWeatherRepository): WeatherRepository
 }

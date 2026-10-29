@@ -5,11 +5,11 @@ widgets, with an animated rain radar as the intended demonstration.
 
 ## Project status
 
-The project currently contains a working Compose starter application, a modular
+The project currently contains a Compose weather screen with MVVM, a modular
 build structure, Hilt dependency injection, tested domain models, and an
-Open-Meteo weather repository backed by a persistent Room cache. Screens still
-show the starter UI; weather presentation, widgets and radar rendering will be
-implemented incrementally.
+Open-Meteo weather repository backed by a persistent Room cache. The screen uses
+Madrid as an explicit demonstration location. Widgets and radar rendering will
+be implemented incrementally.
 
 ## Modules
 
@@ -35,6 +35,29 @@ Project dependencies use Gradle's `implementation` configuration. The domain
 module is independent of Android and the other project modules. Data and widget
 implementations do not depend on each other. Both widget implementations will
 initially live in separate packages within `:widget`.
+
+## Weather screen
+
+`MainActivity` obtains a Hilt-injected `WeatherViewModel`. The ViewModel observes
+the repository and requests one refresh when created. It survives activity
+recreation and ignores additional refresh taps while a request is in progress.
+`WeatherRoute` collects its `StateFlow` with `collectAsStateWithLifecycle` and
+passes state and callbacks to the stateless `WeatherScreen`.
+
+The screen shows temperature and feels-like temperature in Celsius, humidity,
+wind converted to km/h, condition and the provider's valid time formatted in the
+device locale and time zone. English and Spanish resources are included. The
+layout scrolls and constrains its content width for larger displays, with
+previews for loading, content, error and enlarged text.
+
+Saved weather remains visible during refresh and after a failed update. A first
+load failure offers retry without inventing placeholder readings. Storage errors
+have a separate message; retry restarts observation if it previously failed.
+Cancellation is propagated. Provider attribution links to Open-Meteo and identifies
+the data as weather-model estimates.
+
+Madrid is fixed at this stage; the screen does not request device location access
+or provide a city picker yet.
 
 ## Weather domain
 
@@ -135,16 +158,27 @@ targets Java 17.
 - `lintDebug` runs Android static analysis on the debug variant.
 - `connectedDebugAndroidTest` installs the debug app and test APK on connected devices and runs instrumentation tests. Set `ANDROID_SERIAL` to select a specific device when several are connected.
 
-`ApplicationStartupTest` launches the production `MainActivity` and checks that it
-uses `WeatherFlowApplication`, exercising the Hilt application and activity
-startup path. `WeatherDatabaseTest` exercises actual Room queries, observation,
+`WeatherViewModelTest` checks initial refresh, cached data, retry, storage errors,
+cancellation and overlapping refresh prevention. Formatter tests cover decimal
+localization and time-zone offsets. `WeatherScreenTest` checks loading, content,
+errors, refresh, provider attribution and scrolling with enlarged text.
+
+`ApplicationStartupTest` launches the production `MainActivity` with a
+`HiltTestApplication` and a test repository installed with `@TestInstallIn`. It
+verifies ViewModel injection, refresh interactions and retention across activity
+recreation. The repository binding module is public so app instrumentation can
+replace the binding while the concrete data implementation remains internal.
+
+`WeatherDatabaseTest` exercises actual Room queries, observation,
 isolation between locations, concurrent writes and persistence after reopening
 a database on Android. Each test uses its own temporary database and deletes it
 afterward. `:widget` does not have functional tests yet.
 
 Automated tests do not call the live weather API. Network tests use MockWebServer
-on the local machine; repository tests use in-memory fakes. Instrumented database
-tests use Android SQLite and do not require Internet access.
+on the local machine; repository and ViewModel tests use in-memory fakes. UI tests
+use controlled states, and the activity integration tests replace the real
+repository. Instrumented database tests use Android SQLite and do not require
+Internet access.
 
 ## Development workflow
 
