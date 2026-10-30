@@ -11,6 +11,8 @@ import io.github.demiterhugo.weatherflow.data.radar.OfflineFirstRadarRepository
 import io.github.demiterhugo.weatherflow.data.radar.local.RadarDiskCache
 import io.github.demiterhugo.weatherflow.data.radar.local.RadarSnapshotCodec
 import io.github.demiterhugo.weatherflow.data.radar.remote.RainViewerDataSource
+import io.github.demiterhugo.weatherflow.data.radar.map.OpenStreetMapRepository
+import io.github.demiterhugo.weatherflow.domain.repository.RadarMapRepository
 import io.github.demiterhugo.weatherflow.domain.repository.RadarRepository
 import java.io.File
 import javax.inject.Singleton
@@ -18,6 +20,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object RadarDataModule {
+    @Provides
+    @Singleton
+    fun provideRadarMapRepository(@ApplicationContext context: Context): RadarMapRepository =
+        OpenStreetMapRepository.create(File(context.cacheDir, "radar_map_tiles"))
+
     @Provides
     @Singleton
     fun provideRadarRepository(@ApplicationContext context: Context): RadarRepository {

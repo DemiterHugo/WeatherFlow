@@ -24,6 +24,7 @@ fun WeatherRoute(viewModel: WeatherViewModel) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val widgetManager = AppWidgetManager.getInstance(context)
+    LaunchedEffect(state.location) { WeatherWidgetScheduler.locationChanged(context) }
     LaunchedEffect(state.location, state.weather) {
         WeatherWidgetScheduler.render(context)
     }

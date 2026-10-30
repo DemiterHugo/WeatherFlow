@@ -17,6 +17,20 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37])
 class WeatherWidgetRegistryTest {
+    @Test
+    fun mapDownloadsAreEnabledOnlyWhenALargeWidgetIsPresent() {
+        bind(8, RemoteWeatherWidgetReceiver::class.java)
+        val service = AppWidgetManager.getInstance(context)
+        fun size(width: Int, height: Int) = android.os.Bundle().apply {
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, width)
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
+        }
+        service.updateAppWidgetOptions(8, size(276, 304))
+        assertFalse(WeatherWidgetRegistry.hasRadarWidgets(context))
+        service.updateAppWidgetOptions(8, size(320, 390))
+        assertTrue(WeatherWidgetRegistry.hasRadarWidgets(context))
+    }
+
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val manager = shadowOf(AppWidgetManager.getInstance(context))
 

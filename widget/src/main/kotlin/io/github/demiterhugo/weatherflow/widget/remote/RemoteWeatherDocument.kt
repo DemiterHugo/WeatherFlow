@@ -14,6 +14,8 @@ import androidx.compose.remote.creation.RemoteComposeWriterAndroid
 import androidx.compose.ui.graphics.Color
 import io.github.demiterhugo.weatherflow.widget.R
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
+import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
+import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarSize
 
 /**
  * The widget profile and PendingIntent ID mapping are restricted APIs. Keep this integration
@@ -28,6 +30,7 @@ internal object RemoteWeatherDocument {
         actions: RemoteWeatherActions,
         widthDp: Int,
         heightDp: Int,
+        radar: WidgetRadarUi? = null,
     ): CapturedDocument {
         val metrics = context.resources.displayMetrics
         val palette = RemoteWeatherPalette(
@@ -36,7 +39,7 @@ internal object RemoteWeatherDocument {
             Color(context.getColor(R.color.widget_secondary)),
             Color(context.getColor(R.color.widget_error)),
         )
-        return captureSingleRemoteDocument(
+        val document = captureSingleRemoteDocument(
             context = context,
             creationDisplayInfo = RemoteCreationDisplayInfo(
                 width = (widthDp * metrics.density).toInt(),
@@ -46,8 +49,19 @@ internal object RemoteWeatherDocument {
             ),
             profile = widgetProfile(),
         ) {
-            RemoteWeatherContent(text, actions, palette, expanded = widthDp >= 300 && heightDp >= 300)
+            val showRadar = WidgetRadarSize.fits(widthDp, heightDp)
+            RemoteWeatherContent(
+                text, actions, palette, expanded = widthDp >= 300 && heightDp >= 300,
+                radar = radar.takeIf { showRadar },
+                radarLabels = RemoteRadarLabels(
+                    context.getString(R.string.widget_radar_animated), context.getString(R.string.widget_radar_description),
+                    context.getString(R.string.widget_radar_attribution), context.getString(R.string.widget_map_attribution),
+                ),
+                radarResizeHint = context.getString(R.string.widget_radar_resize),
+            )
         }
+        require(document.bytes.size <= 512 * 1024) { "Remote widget document exceeds its transport budget" }
+        return document
     }
 
     @SuppressLint("RestrictedApi")

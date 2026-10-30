@@ -15,6 +15,24 @@ import org.robolectric.annotation.Config
 @Config(sdk = [26, 37])
 class WidgetStatusStorageTest {
     @Test
+    fun radarAndWeatherResultsUseIndependentCoordinatesAndDoNotOverwriteEachOther() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val barcelona = WeatherLocation.Barcelona
+        val other = WeatherLocation.Device(Coordinates(48.8566, 2.3522))
+        try {
+            WidgetStatusStorage.save(context, WidgetStatus(barcelona, failed = true))
+            WidgetStatusStorage.saveRadar(context, WidgetStatus(other, radarFailed = true, mapFailed = true))
+            assertTrue(WidgetStatusStorage.read(context, barcelona).failed)
+            assertFalse(WidgetStatusStorage.read(context, barcelona).radarFailed)
+            assertTrue(WidgetStatusStorage.read(context, other).radarFailed)
+            assertFalse(WidgetStatusStorage.read(context, other).failed)
+        } finally {
+            WidgetStatusStorage.save(context, WidgetStatus())
+            WidgetStatusStorage.saveRadar(context, WidgetStatus())
+        }
+    }
+
+    @Test
     fun bothRenderersReadTheSamePersistedProgressAndFailureForSelectedCoordinates() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val location = WeatherLocation.Barcelona

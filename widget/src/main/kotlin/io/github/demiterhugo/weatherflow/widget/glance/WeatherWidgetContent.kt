@@ -32,12 +32,22 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import io.github.demiterhugo.weatherflow.widget.R
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
+import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
+import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarSize
 
 internal val COMPACT_SIZE = DpSize(180.dp, 220.dp)
 internal val EXPANDED_SIZE = DpSize(300.dp, 300.dp)
+internal val RADAR_SIZE = DpSize(WidgetRadarSize.WIDTH_DP.dp, WidgetRadarSize.HEIGHT_DP.dp)
 
 @Composable
-internal fun WeatherWidgetContent(text: WidgetWeatherText, openApp: Action, refresh: Action, attribution: Action) {
+internal fun WeatherWidgetContent(
+    text: WidgetWeatherText, openApp: Action, refresh: Action, attribution: Action,
+    radar: WidgetRadarUi? = null, rainAttribution: Action = attribution, mapAttribution: Action = attribution,
+) {
+    if (radar != null && LocalSize.current.width >= RADAR_SIZE.width && LocalSize.current.height >= RADAR_SIZE.height) {
+        RadarWeatherWidgetContent(text, radar, openApp, refresh, attribution, rainAttribution, mapAttribution)
+        return
+    }
     val expanded = LocalSize.current.width >= EXPANDED_SIZE.width && LocalSize.current.height >= EXPANDED_SIZE.height
     Column(
         modifier = GlanceModifier.fillMaxSize().appWidgetBackground()
@@ -88,6 +98,7 @@ internal fun WeatherWidgetContent(text: WidgetWeatherText, openApp: Action, refr
         }
         Column {
             if (expanded) WidgetLabel(text.modelEstimate, "widget_model_estimate")
+            if (expanded) WidgetLabel(LocalContext.current.getString(R.string.widget_radar_resize), "widget_radar_resize")
             Text(
                 text.attribution,
                 modifier = GlanceModifier.clickable(attribution).semantics { testTag = "widget_attribution" },
@@ -110,7 +121,7 @@ private fun WidgetLabel(text: String, tag: String, error: Boolean = false) {
 
 /** Resolve both resource variants now so the launcher can select day/night without waking the app. */
 @Composable
-private fun widgetColor(@ColorRes resource: Int): ColorProvider {
+internal fun widgetColor(@ColorRes resource: Int): ColorProvider {
     val context = LocalContext.current
     return remember(context, resource) {
         fun color(mode: Int): Color {

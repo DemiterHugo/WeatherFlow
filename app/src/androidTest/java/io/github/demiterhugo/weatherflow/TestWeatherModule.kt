@@ -6,6 +6,12 @@ import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
 import io.github.demiterhugo.weatherflow.data.di.WeatherRepositoryModule
 import io.github.demiterhugo.weatherflow.data.di.WeatherLocationModule
+import io.github.demiterhugo.weatherflow.data.di.RadarDataModule
+import io.github.demiterhugo.weatherflow.domain.repository.RadarRepository
+import io.github.demiterhugo.weatherflow.domain.repository.RadarMapRepository
+import io.github.demiterhugo.weatherflow.domain.model.RadarSequence
+import io.github.demiterhugo.weatherflow.domain.model.RadarImage
+import kotlinx.coroutines.flow.flowOf
 import io.github.demiterhugo.weatherflow.domain.model.WeatherLocation
 import io.github.demiterhugo.weatherflow.domain.repository.WeatherLocationRepository
 import io.github.demiterhugo.weatherflow.domain.repository.DeviceLocationProvider
@@ -29,8 +35,20 @@ internal val testWeather = CurrentWeather(
 )
 
 @Module
-@TestInstallIn(components = [SingletonComponent::class], replaces = [WeatherRepositoryModule::class, WeatherLocationModule::class])
+@TestInstallIn(components = [SingletonComponent::class], replaces = [WeatherRepositoryModule::class, WeatherLocationModule::class, RadarDataModule::class])
 object TestWeatherModule {
+    @Provides
+    fun provideRadar(): RadarRepository = object : RadarRepository {
+        override fun observeRadar(coordinates: Coordinates): Flow<RadarSequence?> = flowOf(null)
+        override suspend fun refreshRadar(coordinates: Coordinates) = Unit
+    }
+
+    @Provides
+    fun provideMap(): RadarMapRepository = object : RadarMapRepository {
+        override fun observeMap(coordinates: Coordinates): Flow<RadarImage?> = flowOf(null)
+        override suspend fun refreshMap(coordinates: Coordinates) = Unit
+    }
+
     @Provides
     @Singleton
     fun provideTestRepository(): TestWeatherRepository = TestWeatherRepository()

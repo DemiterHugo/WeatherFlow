@@ -9,6 +9,8 @@ internal data class RemoteWeatherActions(
     val refresh: PendingIntent,
     val open: PendingIntent,
     val attribution: PendingIntent,
+    val rainAttribution: PendingIntent = attribution,
+    val mapAttribution: PendingIntent = attribution,
 ) {
     companion object {
         fun create(context: Context, widgetId: Int): RemoteWeatherActions {
@@ -23,6 +25,12 @@ internal data class RemoteWeatherActions(
                 open = PendingIntent.getActivity(context, widgetId, launchIntent, flags),
                 attribution = PendingIntent.getActivity(
                     context, widgetId, Intent(Intent.ACTION_VIEW, "https://open-meteo.com/".toUri()), flags,
+                ),
+                rainAttribution = PendingIntent.getActivity(
+                    context, widgetId, Intent(Intent.ACTION_VIEW, "https://www.rainviewer.com/".toUri()), flags,
+                ),
+                mapAttribution = PendingIntent.getActivity(
+                    context, widgetId, Intent(Intent.ACTION_VIEW, "https://www.openstreetmap.org/copyright".toUri()), flags,
                 ),
             )
         }

@@ -1,4 +1,18 @@
 <resources>
+    <string name="widget_radar_static">Historical radar · Glance · latest image</string>
+    <string name="widget_radar_animated">Historical radar · Remote Compose</string>
+    <string name="widget_radar_description">Regional precipitation radar centered on the saved location</string>
+    <string name="widget_radar_attribution">Radar: RainViewer</string>
+    <string name="widget_map_attribution">© OpenStreetMap contributors</string>
+    <string name="widget_radar_empty">No saved radar. Tap Refresh.</string>
+    <string name="widget_radar_updating">Updating radar…</string>
+    <string name="widget_radar_error">Radar update failed · saved data if available</string>
+    <string name="widget_radar_no_coverage">No radar coverage at your location</string>
+    <string name="widget_radar_partial_coverage">Partial regional coverage</string>
+    <string name="widget_radar_stale">Latest radar image is over 30 minutes old</string>
+    <string name="widget_radar_map_unavailable">Map unavailable. Tap Refresh.</string>
+    <string name="widget_radar_map_cached">Map update failed · saved map</string>
+    <string name="widget_radar_resize">Enlarge the widget to see rain radar</string>
     <string name="remote_widget_name" translatable="false">WeatherFlow · Remote Compose</string>
     <string name="remote_widget_description">Experimental weather widget for Android 17+. Uses your shared saved location.</string>
     <string name="remote_widget_unavailable">The experimental Remote Compose document could not be created. Try again or open the app.</string>

@@ -37,4 +37,19 @@ internal object WidgetStatusStorage {
             saved[WidgetStatus.FAILED] = status.failed
         }
     }
+
+    suspend fun saveRadar(context: Context, status: WidgetStatus) {
+        context.applicationContext.widgetStatusPreferences.edit { saved ->
+            status.location?.coordinates?.let {
+                saved[WidgetStatus.RADAR_LATITUDE] = it.latitude
+                saved[WidgetStatus.RADAR_LONGITUDE] = it.longitude
+            } ?: run {
+                saved.remove(WidgetStatus.RADAR_LATITUDE)
+                saved.remove(WidgetStatus.RADAR_LONGITUDE)
+            }
+            saved[WidgetStatus.RADAR_REFRESHING] = status.radarRefreshing
+            saved[WidgetStatus.RADAR_FAILED] = status.radarFailed
+            saved[WidgetStatus.MAP_FAILED] = status.mapFailed
+        }
+    }
 }

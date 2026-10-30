@@ -1,4 +1,18 @@
 <resources>
+    <string name="widget_radar_static">Radar histórico · Glance · última imagen</string>
+    <string name="widget_radar_animated">Radar histórico · Remote Compose</string>
+    <string name="widget_radar_description">Radar regional de precipitación centrado en la ubicación guardada</string>
+    <string name="widget_radar_attribution">Radar: RainViewer</string>
+    <string name="widget_map_attribution">© Colaboradores de OpenStreetMap</string>
+    <string name="widget_radar_empty">Sin radar guardado. Pulsa Actualizar.</string>
+    <string name="widget_radar_updating">Actualizando radar…</string>
+    <string name="widget_radar_error">Error al actualizar el radar · datos guardados si existen</string>
+    <string name="widget_radar_no_coverage">Sin cobertura de radar en tu ubicación</string>
+    <string name="widget_radar_partial_coverage">Cobertura regional parcial</string>
+    <string name="widget_radar_stale">La última imagen de radar tiene más de 30 minutos</string>
+    <string name="widget_radar_map_unavailable">Mapa no disponible. Pulsa Actualizar.</string>
+    <string name="widget_radar_map_cached">Error al actualizar el mapa · mapa guardado</string>
+    <string name="widget_radar_resize">Amplía el widget para ver el radar de lluvia</string>
     <string name="remote_widget_description">Widget meteorológico experimental para Android 17 o superior. Usa tu ubicación guardada.</string>
     <string name="remote_widget_unavailable">No se ha podido crear el documento experimental de Remote Compose. Reintenta o abre la app.</string>
     <string name="widget_description">Tiempo de Barcelona o de tu ubicación guardada. Amplíalo para ver más detalles.</string>

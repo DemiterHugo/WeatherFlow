@@ -8,6 +8,8 @@ import io.github.demiterhugo.weatherflow.widget.glance.WeatherGlanceWidget
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetStatusStorage
 import io.github.demiterhugo.weatherflow.widget.presentation.toText
 import io.github.demiterhugo.weatherflow.widget.remote.RemoteWeatherRenderer
+import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarReader
+import io.github.demiterhugo.weatherflow.widget.radar.toUi
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -22,7 +24,8 @@ internal object WeatherWidgetRenderer {
             val dependencies = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
             val snapshot = WidgetWeatherReader(dependencies.locationRepository(), dependencies.weatherRepository()).read()
             val status = WidgetStatusStorage.read(context, snapshot.location)
-            RemoteWeatherRenderer.renderAll(context, snapshot.toText(context, status))
+            val radar = WidgetRadarReader(dependencies.radarRepository(), dependencies.radarMapRepository()).read(snapshot.location)
+            RemoteWeatherRenderer.renderAll(context, snapshot.toText(context, status), radar.toUi(context, status, animate = true))
         }
     }
 }

@@ -9,11 +9,12 @@ import androidx.annotation.RequiresApi
 import io.github.demiterhugo.weatherflow.widget.R
 import io.github.demiterhugo.weatherflow.widget.WeatherWidgetRegistry
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
+import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
 import kotlinx.coroutines.CancellationException
 
 @RequiresApi(37)
 internal object RemoteWeatherRenderer {
-    suspend fun renderAll(context: Context, text: WidgetWeatherText) {
+    suspend fun renderAll(context: Context, text: WidgetWeatherText, radar: WidgetRadarUi? = null) {
         val manager = AppWidgetManager.getInstance(context)
         WeatherWidgetRegistry.remoteIds(context).forEach { id ->
             val actions = RemoteWeatherActions.create(context, id)
@@ -26,6 +27,7 @@ internal object RemoteWeatherRenderer {
                     context, text, actions,
                     widthDp = options.getInt(widthKey, 180).coerceAtLeast(180),
                     heightDp = options.getInt(heightKey, 220).coerceAtLeast(220),
+                    radar = radar,
                 )
                 manager.updateAppWidget(id, RemoteWeatherDocument.toRemoteViews(document))
             } catch (cancelled: CancellationException) {

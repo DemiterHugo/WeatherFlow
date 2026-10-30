@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.compose.remote.creation.compose.capture.CapturedDocument
 import androidx.compose.remote.core.Operation
 import androidx.compose.remote.core.operations.TextData
+import androidx.compose.remote.core.operations.BitmapData
 import androidx.compose.remote.core.RemoteComposeBuffer
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
 import kotlinx.coroutines.runBlocking
@@ -16,10 +17,32 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import io.github.demiterhugo.weatherflow.widget.radar.*
+import android.graphics.Color
+import io.github.demiterhugo.weatherflow.domain.model.WeatherLocation
+import io.github.demiterhugo.weatherflow.widget.presentation.WidgetStatus
+import java.time.Clock
+import java.time.ZoneOffset
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [37])
 class RemoteWeatherDocumentTest {
+    @Test
+    fun radarDocumentContainsSixTimedStatesProviderCreditsAndFitsTransportBudget() = runBlocking {
+        val radar = WidgetRadarSnapshot(WeatherLocation.Barcelona, radarTestSequence(), radarTestImage(Color.WHITE))
+            .toUi(context, WidgetStatus(WeatherLocation.Barcelona), true, Clock.fixed(radarTestTime, ZoneOffset.UTC))
+        val radarActions = actions.copy(rainAttribution = pending("rain"), mapAttribution = pending("map"))
+        val document = RemoteWeatherDocument.capture(context, text, radarActions, 320, 460, radar)
+        val content = document.decodedContent()
+        for (frame in radar.frames) assertTrue(content.contains(frame.label))
+        assertTrue(content.contains("RainViewer"))
+        assertTrue(content.contains("OpenStreetMap"))
+        assertEquals(5, document.actions().size)
+        assertTrue(document.bytes.size < 512 * 1024)
+        assertEquals(7, document.decodedOperations().filterIsInstance<BitmapData>().size)
+        assertNotNull(RemoteWeatherDocument.toRemoteViews(document))
+    }
+
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val text = WidgetWeatherText(
         "Barcelona", "19 °C", "Cloudy", "Valid 29/10/26 17:30", "Humidity 74%", "Wind 10 km/h",
@@ -29,12 +52,15 @@ class RemoteWeatherDocumentTest {
         pendingIntents.forEach { _, action -> add(action) }
     }
 
-    private fun CapturedDocument.decodedContent(): String {
+    private fun CapturedDocument.decodedOperations(): List<Operation> {
         val buffer = bytes.inputStream().use { RemoteComposeBuffer.fromInputStream(it) }
         val operations = arrayListOf<Operation>()
         buffer.inflateFromBuffer(operations)
-        return operations.filterIsInstance<TextData>().joinToString("\n") { it.mText }
+        return operations
     }
+
+    private fun CapturedDocument.decodedContent(): String = decodedOperations()
+        .filterIsInstance<TextData>().joinToString("\n") { it.mText }
 
     private fun pending(name: String) = PendingIntent.getActivity(
         context, 0, Intent(Intent.ACTION_VIEW).setData(android.net.Uri.parse("weatherflow://test/$name")),

@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
+import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
 
 internal data class RemoteWeatherPalette(val background: Color, val foreground: Color, val secondary: Color, val error: Color)
 
@@ -33,7 +34,14 @@ internal fun RemoteWeatherContent(
     actions: RemoteWeatherActions,
     palette: RemoteWeatherPalette,
     expanded: Boolean,
+    radar: WidgetRadarUi? = null,
+    radarLabels: RemoteRadarLabels? = null,
+    radarResizeHint: String? = null,
 ) {
+    if (radar != null && radarLabels != null) {
+        RadarRemoteWeatherContent(text, actions, palette, radar, radarLabels)
+        return
+    }
     val open = pendingIntentAction { actions.open }
     val refresh = pendingIntentAction { actions.refresh }
     val attribution = pendingIntentAction { actions.attribution }
@@ -72,6 +80,7 @@ internal fun RemoteWeatherContent(
                 )
             }
             if (expanded) Label(text.modelEstimate, palette.secondary)
+            if (expanded) radarResizeHint?.let { Label(it, palette.secondary) }
             RemoteText(
                 text.attribution.rs, modifier = RemoteModifier.clickable(attribution),
                 color = palette.secondary.rc, fontSize = 10.rsp, fontWeight = FontWeight.Normal, maxLines = 1,

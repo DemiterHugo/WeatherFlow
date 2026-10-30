@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import io.github.demiterhugo.weatherflow.widget.WeatherWidgetScheduler
+import io.github.demiterhugo.weatherflow.widget.WeatherWidgetRegistry
 
 /** The receiver only enqueues work; document capture and network access run in a worker. */
 class RemoteWeatherWidgetReceiver : AppWidgetProvider() {
@@ -17,7 +18,12 @@ class RemoteWeatherWidgetReceiver : AppWidgetProvider() {
     }
 
     override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) {
-        if (Build.VERSION.SDK_INT >= 37) WeatherWidgetScheduler.render(context)
+        if (Build.VERSION.SDK_INT >= 37) {
+            WeatherWidgetScheduler.render(context)
+            if (WeatherWidgetRegistry.hasRadarWidgets(context)) {
+                WeatherWidgetScheduler.radarSizeChanged(context)
+            }
+        }
     }
 
     override fun onEnabled(context: Context) {

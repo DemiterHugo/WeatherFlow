@@ -1,7 +1,8 @@
 # WeatherFlow
 
 Android project for comparing Jetpack Glance and Remote Compose through weather
-widgets, with an animated rain radar as the intended demonstration.
+widgets, including historical precipitation radar: a static latest frame in Glance
+and a locally replayed sequence in Remote Compose.
 
 ## Project status
 
@@ -11,7 +12,8 @@ Open-Meteo weather repository backed by a persistent Room cache, and a resizable
 Glance weather widget and an experimental Remote Compose weather widget.
 Barcelona is the default location; the app can save an approximate device location
 for the screen and both widget providers. A RainViewer repository now downloads
-and caches complete historical radar sequences; radar rendering is the next step.
+and caches complete historical radar sequences. The large widgets overlay these
+images on the same OpenStreetMap basemap.
 
 ## Modules
 
@@ -85,21 +87,24 @@ label. The widget supports English/Spanish and light/dark resources, and provide
 Refresh, Open app and provider-link actions. A selector preview is available on
 Android 12 and later; it contains no sample weather reading.
 
-Glance 1.2.0 produces classic RemoteViews, providing the baseline for the future
-Remote Compose comparison. It does not implement the animated radar yet.
+Glance 1.2.0 produces classic RemoteViews. At **300 × 360 dp** or larger, its radar
+layout shows the newest historical image, its generation time, coverage information
+and provider credits. Smaller layouts retain the existing weather presentation.
 
 Widgets read the same Room repository and DataStore location as the app. An active
 Glance session observes cache/location changes. Foreground changes also enqueue
 a render-only job, so widgets are updated after their composition sessions end.
 No second HTTP request is needed for an app refresh.
 
-WorkManager schedules one unique hourly task while widgets are installed; Android
+WorkManager schedules one unique 15-minute task while widgets are installed; Android
 may defer it because of network, battery or scheduling constraints. Its initial
-delay is one hour, and installing a widget requests an immediate refresh. Periodic
+delay is 15 minutes, and installing a widget requests an immediate refresh. Periodic
 ticks and manual refreshes enqueue the same unique fetch job, avoiding overlapping
 widget requests. Manual refreshes can report offline failure immediately; failed
 jobs retry with exponential backoff, up to three attempts. Removing the final
-widget cancels its periodic, fetch and render work. The provider disables platform
+widget cancels its periodic, fetch and render work. Updating an existing installation
+changes its hourly periodic work in place, rather than leaving the old interval.
+The provider disables platform
 periodic updates to avoid a second timer.
 
 Progress and refresh errors are persisted in a shared Preferences DataStore and
@@ -121,21 +126,34 @@ wind and the model-estimate label. The receiver only schedules work.
 The `remote` package captures a Remote Compose document in a CoroutineWorker and
 sends it through Android's `RemoteViews.DrawInstructions`. It uses the platform
 widget profile for document API level 7. This does not embed a player in the app
-or convert the widget to a bitmap. The animated radar is a subsequent step.
+or convert the entire widget to a bitmap. At **300 × 360 dp** or larger, the
+radar layout replays the same historical frames used by Glance. A remote integer
+clock expression selects one state per second in `RemoteStateLayout`. Each state
+contains its image and matching generation time/counter. The host executes the
+sequence; Kotlin coroutines and WorkManager do not drive individual frames.
+The basemap is recorded once and reused across frame states. Documents are capped
+at 512 KiB before transport; creation/size failures use the existing explicit
+experimental-widget error view. The clock expression's alpha22 restricted API
+suppression is isolated in `RemoteRadarContent`.
 
-Both providers share one unique hourly schedule and one fetch queue. Removing
+Both providers share one unique 15-minute schedule and one fetch queue. Removing
 either provider keeps the schedule while the other still has installed instances.
 The final removal cancels the shared work. Foreground cache/location changes render
-both providers without another HTTP request. Rendering is serialized so a slower
+both providers without another weather HTTP request. A location change replaces
+outdated fetch work with a radar-only refresh; the app refreshes its weather.
+Resizing to radar mode replaces pending work with a full refresh so installation's
+initial weather request is not lost. A one-second delay coalesces rapid changes,
+and a new request does not depend on an older request succeeding.
+Rendering is serialized so a slower
 capture cannot overwrite a newer render. Glance observes the shared progress store
 during active sessions; Remote Compose receives a new document on each update.
 
 ### Compatibility and alpha integration
 
 Remote Compose is pinned to **1.0.0-alpha22**, an experimental release. Google's
-[widget introduction](https://developer.android.com/blog/posts/remote-compose-gaming-widgets)
-recommends Android 17 or later and explains the limitations on older Android
-versions. WeatherFlow enables this provider only on API 37+, through a versioned
+[architecture guide](https://developer.android.com/develop/ui/compose/system/remote-compose)
+describes document creation, transport and playback in the host process.
+WeatherFlow enables this provider only on API 37+, through a versioned
 resource and runtime checks; the app and Glance keep their API 26 minimum.
 
 The creation-compose dependency declares API 29 as its minimum. A manifest
@@ -237,8 +255,11 @@ The radar uses its own provider and cache, described below.
 an explicit suspending `refreshRadar(coordinates)`. Its `:data` implementation is
 bound as a Hilt singleton. Callers pass the coordinates from the shared location
 repository, so Barcelona and a saved device position use the same contract.
-This step adds the data foundation; screens, widgets and background jobs do not
-request or display radar yet.
+Both large widgets use this repository and a cache-only `WidgetRadarReader`.
+Widget installation, manual refresh and shared periodic work update radar data.
+Weather and radar have independent persisted progress/errors scoped to coordinates.
+Failure of one does not suppress successful data from the other. Operation
+timeouts are reported as failures; cancellation of the worker propagates.
 
 A refresh reads the RainViewer manifest, sorts and deduplicates historical
 frames, and selects up to six of the most recent available frames. Conflicting
@@ -299,7 +320,8 @@ with cancellation attached until the response body has been read. The client
 spaces requests by at least 750 ms, disables automatic retries and redirects,
 and honors `Retry-After` on HTTP 429/503. During the cooldown, another request
 fails without contacting the provider. Callers decide when to retry; this step
-adds no background radar polling. Other clients sharing the same public IP may
+does not introduce an additional timer alongside the shared widget schedule.
+Other clients sharing the same public IP may
 also consume the provider's allowance.
 
 ### Radar provider and attribution
@@ -316,11 +338,49 @@ this integration follows the specific Weather Maps and transition documentation.
 The free API is intended for personal and educational use, requires no API key,
 and has no availability guarantee. Review its
 [terms and attribution requirements](https://www.rainviewer.com/api.html) before
-redistributing or using the project commercially. When radar presentation is
-added, it must visibly credit **Weather data by RainViewer** and link to the
-provider. This repository's source availability does not relicense the provider's
+redistributing or using the project commercially. The radar layouts visibly credit
+**Radar: RainViewer** and link to the provider. This repository's source availability does not relicense the provider's
 data. Automated tests use controlled responses and generated images, with no
 live provider calls or downloaded radar imagery checked into Git.
+
+### Geographic map and radar presentation
+
+`RadarMapRepository` exposes a cache-only map flow and an explicit refresh.
+Its OpenStreetMap implementation downloads only the tiles intersecting the current
+256 × 256, zoom-7 viewport (at most four tiles). The worker requests map tiles only
+while a radar-sized widget exists; resizing to that size schedules a radar/map
+refresh. There is no map browsing, bulk download, adjacent-area prefetch or offline
+map-download feature.
+
+Web Mercator world-pixel coordinates position and crop these tiles around the
+radar's saved center. Longitude wraps at the dateline; latitude never wraps across
+the poles. Both providers share the same basemap, precipitation overlays, coverage
+shading and center marker. Glance composites the latest overlay; Remote Compose
+keeps the base and overlays separate for document reuse. A missing map produces
+an explicit unavailable state rather than an unlocated precipitation picture.
+
+The map uses a 16 MiB OkHttp disk cache, honors server expiry and conditional
+revalidation headers, and supplies a seven-day fallback only when no cache/expiry
+headers are provided. Cache-only reads never access the network. Invalid imagery
+is removed from the HTTP cache so it can be retried. Requests identify WeatherFlow
+with its repository URL. Both radar layouts show a visible, clickable OpenStreetMap
+copyright credit, in addition to RainViewer and Open-Meteo attribution. See the
+[tile usage policy](https://operations.osmfoundation.org/policies/tiles/) and
+[OpenStreetMap copyright](https://www.openstreetmap.org/copyright). The public tile
+service offers no availability guarantee.
+
+Frame timestamps remain visible during replay, with a frame counter. Coverage
+is described explicitly. At render time, the entire sequence is marked old when
+its newest frame is more than 30 minutes old. Timestamps remain visible between
+refreshes even if background work is deferred. The historical frames are not a forecast.
+Android controls background scheduling and launcher rendering; the 15-minute
+interval is not a guarantee of exact refresh times or uninterrupted playback.
+
+The radar layouts were manually checked in the Android 17 Pixel launcher;
+frame/image and timestamp changes were also verified in One UI on the Samsung
+Galaxy S25 Ultra. Document tests verify six frame states, five actions and seven
+encoded bitmaps (one shared map plus six overlays). Glance tests inflate actual
+RemoteViews and check that header text remains separated after measurement.
 
 ## Dependency injection
 
@@ -373,7 +433,7 @@ afterward. Location preference tests verify the default, replacement and
 persistence after reopening storage.
 
 Widget tests verify cache/session observation, switching locations, progress,
-refresh failures and cancellation, and unique hourly scheduling/removal.
+refresh failures and cancellation, and unique 15-minute scheduling/removal.
 Glance content tests check compact/expanded layouts, empty/error/loading states
 and attribution, including actual RemoteViews inflation during refresh. They use
 Robolectric 4.17 with Android APIs 26 and 37 and the test-only
