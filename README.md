@@ -403,6 +403,7 @@ targets Java 17.
 ```sh
 ./gradlew projects
 ./gradlew :app:assembleDebug :data:assembleDebug :widget:assembleDebug :domain:build
+./gradlew :app:assembleRelease
 ./gradlew :app:testDebugUnitTest :data:testDebugUnitTest :widget:testDebugUnitTest :domain:test
 ./gradlew :app:lintDebug :data:lintDebug :widget:lintDebug
 ./gradlew :app:connectedDebugAndroidTest
@@ -411,6 +412,7 @@ targets Java 17.
 
 - `projects` lists the registered Gradle modules.
 - `assembleDebug` builds debug artifacts; `:domain:build` builds and checks the JVM library.
+- `assembleRelease` builds the optimized release APK.
 - `testDebugUnitTest` and `test` run local unit tests. Domain tests cover model validation; data tests cover HTTP requests, decoding, mappings and repository behavior using controlled responses.
 - `lintDebug` runs Android static analysis on the debug variant.
 - `connectedDebugAndroidTest` installs the debug app and test APK on connected devices and runs instrumentation tests. Set `ANDROID_SERIAL` to select a specific device when several are connected.
@@ -458,6 +460,53 @@ reuse, location isolation and failure preservation. Real filesystem tests cover
 reopening, eviction, corruption and interrupted writes. Android instrumentation
 checks actual PNG decoding, coverage classification and complete sequence
 persistence with generated images. No live network is required for these tests.
+
+## Continuous integration
+
+[Android CI](.github/workflows/android-ci.yml) runs on branch pushes and pull
+requests. Its **Build, test and lint** job uses Ubuntu 24.04, Temurin Java 25,
+Android SDK Platform `android-37.0` and Build Tools `36.0.0`, the effective default
+of the pinned Android Gradle Plugin. Application bytecode still targets Java 17.
+Gradle comes from the checked-in Wrapper; CI does not select a different version.
+The SDK step reuses these components when present on the runner and installs
+them with `sdkmanager` only when needed, then checks their expected paths.
+
+The job builds the debug APK, runs local tests in all four modules, builds the
+release APK, then runs debug lint for the three Android modules. Each command
+runs in a separate step/process. Release source generation and debug lint stay
+separate to avoid the generated-source lookup failure observed with Hilt/KSP.
+
+The Gradle options make CI output reproducible and useful for diagnosis:
+
+- `--no-daemon` uses a fresh build process for each invocation.
+- `--stacktrace` includes exception details on failure.
+- `--console=plain` keeps logs free of interactive console formatting.
+- `--continue` runs independent test/lint tasks after a failure; the command still fails overall.
+
+The official [Gradle action](https://github.com/gradle/actions/tree/main/setup-gradle)
+validates the Wrapper JAR and caches Gradle User Home using its **basic** GitHub
+cache provider. Pull requests restore caches without writing them; branch pushes
+can update their caches. No additional cache service or secret is required.
+Actions are pinned to full commit SHAs, with their major versions in comments;
+review these pins deliberately when updating the workflow.
+
+Available test results and build/lint reports are uploaded as the
+`android-verification-reports` artifact for **14 days**, including when a preceding
+check fails. Cancelled runs skip the upload. Missing reports produce a warning
+when setup or compilation failed before they could be generated. Earlier checks
+retain their failure status. New commits cancel obsolete runs for the same
+branch or pull request; each job has a 45-minute limit.
+
+The workflow uses read-only repository permissions and does not retain checkout
+credentials. It compiles the release variant without publishing APKs, creating
+releases or configuring production signing. Automated tests use controlled
+responses and do not request live weather, radar or map data.
+
+This first workflow covers local JVM/Robolectric tests and static/build checks.
+Instrumented tests continue to use the emulator/device commands above; they are
+not yet part of hosted CI. After pushing the workflow, inspect its run in the
+repository's **Actions** tab and download its reports. Local validation does not
+exercise the hosted SDK setup, cache or artifact-upload steps.
 
 ## Development workflow
 
