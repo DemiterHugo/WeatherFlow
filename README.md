@@ -6,7 +6,7 @@ and a locally replayed sequence in Remote Compose.
 
 ## Project status
 
-Version **0.1.0** (`versionCode = 2`) is in preparation on `release/0.1.0`.
+Version **0.1.0** (`versionCode = 2`) is the first demonstration release.
 See the [changelog](CHANGELOG.md) for its scope and compatibility limits.
 
 The project currently contains a Compose weather screen with MVVM, a modular

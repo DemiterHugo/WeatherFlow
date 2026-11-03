@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 - 2026-11-03
 
 First demonstration version of WeatherFlow, comparing Jetpack Glance and
 experimental Remote Compose through location-aware weather widgets and historical
