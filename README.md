@@ -6,6 +6,9 @@ and a locally replayed sequence in Remote Compose.
 
 ## Project status
 
+Version **0.1.0** (`versionCode = 2`) is in preparation on `release/0.1.0`.
+See the [changelog](CHANGELOG.md) for its scope and compatibility limits.
+
 The project currently contains a Compose weather screen with MVVM, a modular
 build structure, Hilt dependency injection, tested domain models, and an
 Open-Meteo weather repository backed by a persistent Room cache, and a resizable
