@@ -1,0 +1,23 @@
+{
+  "latitude": 40.4,
+  "longitude": -3.7,
+  "utc_offset_seconds": 0,
+  "current_units": {
+    "time": "unixtime",
+    "interval": "seconds",
+    "temperature_2m": "°C",
+    "apparent_temperature": "°C",
+    "relative_humidity_2m": "%",
+    "wind_speed_10m": "m/s",
+    "weather_code": "wmo code"
+  },
+  "current": {
+    "time": 1700000000,
+    "interval": 900,
+    "temperature_2m": 18.5,
+    "apparent_temperature": 17.0,
+    "relative_humidity_2m": 65,
+    "wind_speed_10m": 3.2,
+    "weather_code": 2
+  }
+}
