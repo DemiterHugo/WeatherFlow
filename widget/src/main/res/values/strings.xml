@@ -1,0 +1,47 @@
+<resources>
+    <string name="widget_radar_static">Historical radar · Glance · latest image</string>
+    <string name="widget_radar_animated">Historical radar · Remote Compose</string>
+    <string name="widget_radar_description">Regional precipitation radar centered on the saved location</string>
+    <string name="widget_radar_attribution">Radar: RainViewer</string>
+    <string name="widget_map_attribution">© OpenStreetMap contributors</string>
+    <string name="widget_radar_empty">No saved radar. Tap Refresh.</string>
+    <string name="widget_radar_updating">Updating radar…</string>
+    <string name="widget_radar_error">Radar update failed · saved data if available</string>
+    <string name="widget_radar_no_coverage">No radar coverage at your location</string>
+    <string name="widget_radar_partial_coverage">Partial regional coverage</string>
+    <string name="widget_radar_stale">Latest radar image is over 30 minutes old</string>
+    <string name="widget_radar_map_unavailable">Map unavailable. Tap Refresh.</string>
+    <string name="widget_radar_map_cached">Map update failed · saved map</string>
+    <string name="widget_radar_resize">Enlarge the widget to see rain radar</string>
+    <string name="remote_widget_name" translatable="false">WeatherFlow · Remote Compose</string>
+    <string name="remote_widget_description">Experimental weather widget for Android 17+. Uses your shared saved location.</string>
+    <string name="remote_widget_unavailable">The experimental Remote Compose document could not be created. Try again or open the app.</string>
+    <string name="widget_name" translatable="false">WeatherFlow · Glance</string>
+    <string name="widget_description">Weather for Barcelona or your saved device location. Resize for more details.</string>
+    <string name="widget_barcelona">Barcelona</string>
+    <string name="widget_device_location">Saved location</string>
+    <string name="widget_unknown_location">Weather</string>
+    <string name="widget_temperature">%1$s °C</string>
+    <string name="widget_humidity">Humidity %1$d%%</string>
+    <string name="widget_wind">Wind %1$s km/h</string>
+    <string name="widget_time">Valid %1$s</string>
+    <string name="widget_refresh">Refresh</string>
+    <string name="widget_open">Open app</string>
+    <string name="widget_updating">Updating…</string>
+    <string name="widget_empty">No saved weather. Tap Refresh.</string>
+    <string name="widget_error_cached">Update failed · saved data</string>
+    <string name="widget_error_empty">Weather unavailable. Try again.</string>
+    <string name="widget_attribution">Open-Meteo · CC BY 4.0</string>
+    <string name="widget_model_estimate">Weather-model estimates</string>
+    <string name="widget_preview_temperature" translatable="false">— °C</string>
+    <string name="widget_preview_hint">Preview · live data after adding</string>
+    <string name="widget_clear">Clear</string>
+    <string name="widget_partly_cloudy">Partly cloudy</string>
+    <string name="widget_cloudy">Cloudy</string>
+    <string name="widget_fog">Fog</string>
+    <string name="widget_drizzle">Drizzle</string>
+    <string name="widget_rain">Rain</string>
+    <string name="widget_snow">Snow</string>
+    <string name="widget_thunderstorm">Thunderstorm</string>
+    <string name="widget_unknown">Unknown conditions</string>
+</resources>

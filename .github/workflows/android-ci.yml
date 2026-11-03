@@ -1,0 +1,85 @@
+name: Android CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    name: Build, test and lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Java 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle and validate Wrapper
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+        with:
+          cache-provider: basic
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          validate-wrappers: true
+
+      - name: Ensure Android SDK components
+        run: |
+          ci_platform_jar="$ANDROID_HOME/platforms/android-37.0/android.jar"
+          ci_build_tools="$ANDROID_HOME/build-tools/36.0.0/aapt2"
+          if [[ ! -f "$ci_platform_jar" || ! -x "$ci_build_tools" ]]; then
+            # Preserve sdkmanager's exit code under bash pipefail.
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null < <(yes)
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+              "platforms;android-37.0" "build-tools;36.0.0"
+          fi
+          test -f "$ci_platform_jar"
+          test -x "$ci_build_tools"
+
+      - name: Build debug APK
+        run: ./gradlew --no-daemon --stacktrace --console=plain :app:assembleDebug
+
+      - name: Run local tests in all modules
+        run: >-
+          ./gradlew --no-daemon --stacktrace --console=plain --continue
+          :domain:test :app:testDebugUnitTest :data:testDebugUnitTest :widget:testDebugUnitTest
+
+      # Keep release generation and debug lint in separate processes: Hilt/KSP generate
+      # sources that lint reads, and running these together previously caused a lookup race.
+      - name: Build release APK
+        run: ./gradlew --no-daemon --stacktrace --console=plain :app:assembleRelease
+
+      - name: Run Android Lint
+        run: >-
+          ./gradlew --no-daemon --stacktrace --console=plain --continue
+          :app:lintDebug :data:lintDebug :widget:lintDebug
+
+      - name: Preserve verification reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: android-verification-reports
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            **/build/reports/
+            **/build/test-results/test/
+            **/build/test-results/testDebugUnitTest/
