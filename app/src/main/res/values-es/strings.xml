@@ -1,17 +1,14 @@
 <resources>
     <string name="weather_city_barcelona">Barcelona</string>
-    <string name="weather_default_location">Ubicación predeterminada</string>
     <string name="weather_location_device">Mi ubicación</string>
-    <string name="weather_location_saved">Ubicación guardada del dispositivo. Usa el botón para actualizarla.</string>
     <string name="weather_use_location">Usar mi ubicación</string>
     <string name="weather_use_barcelona">Usar Barcelona</string>
     <string name="weather_locating">Buscando tu ubicación…</string>
     <string name="weather_location_denied">Se ha denegado el permiso de ubicación. Se conserva la ubicación seleccionada.</string>
     <string name="weather_location_failed">No se ha podido obtener o guardar tu ubicación. Revisa los ajustes de ubicación y vuelve a intentarlo.</string>
     <string name="weather_add_widget">Añadir widget Glance</string>
-    <string name="weather_add_remote_widget">Añadir widget Remote Compose (experimental)</string>
+    <string name="weather_add_remote_widget">Añadir Remote Compose</string>
     <string name="weather_loading">Cargando el tiempo…</string>
-    <string name="weather_current_conditions">Condiciones actuales</string>
     <string name="weather_temperature">%1$s °C</string>
     <string name="weather_feels_like">Sensación térmica de %1$s °C</string>
     <string name="weather_humidity">Humedad</string>
@@ -37,4 +34,11 @@
     <string name="weather_condition_snow">Nieve</string>
     <string name="weather_condition_thunderstorm">Tormenta</string>
     <string name="weather_condition_unknown">Condiciones desconocidas</string>
+    <string name="widget_comparison_title">Compara los widgets</string>
+    <string name="widget_comparison_intro">Añade los widgets al inicio y compáralos allí.</string>
+    <string name="widget_comparison_glance">Jetpack Glance</string>
+    <string name="widget_comparison_static">Última imagen del radar</string>
+    <string name="widget_comparison_remote">Remote Compose</string>
+    <string name="widget_comparison_animated">Radar animado · Experimental · Android 17 o superior</string>
+    <string name="widget_comparison_picker">Abre el selector de widgets del inicio y elige WeatherFlow.</string>
 </resources>

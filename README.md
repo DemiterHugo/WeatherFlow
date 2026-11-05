@@ -85,14 +85,16 @@ coordinates and do not track movement. There is no city search yet.
 Add **WeatherFlow · Glance** from the launcher's widget picker, or use **Add Glance
 widget** in the app when the launcher supports pinning. The compact layout shows
 location, temperature, condition, provider valid time and attribution. Expanding
-to at least 300 × 300 dp also shows humidity, wind in km/h and the model-estimate
-label. The widget supports English/Spanish and light/dark resources, and provides
-Refresh, Open app and provider-link actions. A selector preview is available on
+to at least 260 × 270 dp shows the compact radar with a bounded square map. The
+widget supports English/Spanish and light/dark resources, and provides Refresh,
+Open app and provider-link actions. A selector preview is available on
 Android 12 and later; it contains no sample weather reading.
 
-Glance 1.2.0 produces classic RemoteViews. At **300 × 360 dp** or larger, its radar
+Glance 1.2.0 produces classic RemoteViews. At **260 × 270 dp** or larger, its radar
 layout shows the newest historical image, its generation time, coverage information
-and provider credits. Smaller layouts retain the existing weather presentation.
+and provider credits. Smaller layouts show weather and the provider name. On the Galaxy S25 Ultra,
+both providers fit at 4 × 3 cells on the same One UI page. Add each from the
+app, then resize any older widget to the same size for a direct comparison.
 
 Widgets read the same Room repository and DataStore location as the app. An active
 Glance session observes cache/location changes. Foreground changes also enqueue
@@ -119,17 +121,17 @@ repositories to system-created workers and widgets.
 ## Experimental Remote Compose widget
 
 On Android 17 (API 37) and later, add **WeatherFlow · Remote Compose** from the
-launcher picker or **Add Remote Compose widget (experimental)** in the app.
+launcher picker or **Add Remote Compose** in the app.
 Its compact and expanded layouts use the same localized presentation values,
 weather cache, selected location, units, valid time and Open-Meteo attribution as
 Glance. Actions refresh the weather, open the app and open the provider's website.
-The layout is regenerated after resizing; expanding to 300 × 300 dp adds humidity,
-wind and the model-estimate label. The receiver only schedules work.
+The layout is regenerated after resizing. The radar layout shows the provider
+name and a bounded square map. The receiver only schedules work.
 
 The `remote` package captures a Remote Compose document in a CoroutineWorker and
 sends it through Android's `RemoteViews.DrawInstructions`. It uses the platform
 widget profile for document API level 7. This does not embed a player in the app
-or convert the entire widget to a bitmap. At **300 × 360 dp** or larger, the
+or convert the entire widget to a bitmap. At **260 × 270 dp** or larger, the
 radar layout replays the same historical frames used by Glance. A remote integer
 clock expression selects one state per second in `RemoteStateLayout`. Each state
 contains its image and matching generation time/counter. The host executes the
