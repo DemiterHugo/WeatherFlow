@@ -40,6 +40,6 @@
     <string name="widget_comparison_glance">Jetpack Glance</string>
     <string name="widget_comparison_static">Latest radar image</string>
     <string name="widget_comparison_remote">Remote Compose</string>
-    <string name="widget_comparison_animated">Animated radar · Experimental · Android 17+</string>
+    <string name="widget_comparison_animated">Tap to replay rain radar · Android 17+</string>
     <string name="widget_comparison_picker">Open the home screen widget picker and select WeatherFlow.</string>
 </resources>

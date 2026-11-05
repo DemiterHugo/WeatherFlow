@@ -39,6 +39,6 @@
     <string name="widget_comparison_glance">Jetpack Glance</string>
     <string name="widget_comparison_static">Última imagen del radar</string>
     <string name="widget_comparison_remote">Remote Compose</string>
-    <string name="widget_comparison_animated">Radar animado · Experimental · Android 17 o superior</string>
+    <string name="widget_comparison_animated">Radar de lluvia al tocar · Android 17 o superior</string>
     <string name="widget_comparison_picker">Abre el selector de widgets del inicio y elige WeatherFlow.</string>
 </resources>

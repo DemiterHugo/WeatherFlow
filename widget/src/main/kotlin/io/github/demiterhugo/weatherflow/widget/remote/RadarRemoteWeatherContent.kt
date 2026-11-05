@@ -29,6 +29,7 @@ internal data class RemoteRadarLabels(
     val mode: String,
     val description: String,
     val empty: String,
+    val play: String,
     val rainCredit: String,
     val mapCredit: String,
     val mapSize: Int,

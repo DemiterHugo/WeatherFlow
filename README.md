@@ -132,14 +132,15 @@ The `remote` package captures a Remote Compose document in a CoroutineWorker and
 sends it through Android's `RemoteViews.DrawInstructions`. It uses the platform
 widget profile for document API level 7. This does not embed a player in the app
 or convert the entire widget to a bitmap. At **260 × 270 dp** or larger, the
-radar layout replays the same historical frames used by Glance. A remote integer
-clock expression selects one state per second in `RemoteStateLayout`. Each state
-contains its image and matching generation time/counter. The host executes the
-sequence; Kotlin coroutines and WorkManager do not drive individual frames.
-The basemap is recorded once and reused across frame states. Documents are capped
-at 512 KiB before transport; creation/size failures use the existing explicit
-experimental-widget error view. The clock expression's alpha22 restricted API
-suppression is isolated in `RemoteRadarContent`.
+radar layout offers on-demand playback. Glance prioritizes the weather summary
+and shows the latest radar image as a thumbnail. Remote Compose opens on that
+same latest image. Tapping **Play** replays the historical frames once and
+returns to the latest image. The launcher handles the tap and advances the clock
+locally. The basemap and widget layout stay in place while the precipitation
+overlay, time and progress update.
+Documents are capped at 512 KiB before transport. Creation or size failures use
+the experimental widget error view. The alpha22 expression and drawing
+integration is isolated in `RemoteRadarContent`.
 
 Both providers share one unique 15-minute schedule and one fetch queue. Removing
 either provider keeps the schedule while the other still has installed instances.
@@ -379,13 +380,13 @@ is described explicitly. At render time, the entire sequence is marked old when
 its newest frame is more than 30 minutes old. Timestamps remain visible between
 refreshes even if background work is deferred. The historical frames are not a forecast.
 Android controls background scheduling and launcher rendering; the 15-minute
-interval is not a guarantee of exact refresh times or uninterrupted playback.
+interval is approximate. Radar playback starts on tap and uses the cached sequence.
 
-The radar layouts were manually checked in the Android 17 Pixel launcher;
-frame/image and timestamp changes were also verified in One UI on the Samsung
-Galaxy S25 Ultra. Document tests verify six frame states, five actions and seven
-encoded bitmaps (one shared map plus six overlays). Glance tests inflate actual
-RemoteViews and check that header text remains separated after measurement.
+The Android 17 comparison was checked in One UI on a Samsung Galaxy S25 Ultra.
+Document tests verify six conditional overlays, one local playback action, five
+external actions and seven encoded bitmaps (one shared map plus six overlays).
+Glance tests inflate the RemoteViews and check that the weather summary,
+thumbnail, actions and credits fit.
 
 ## Dependency injection
 

@@ -33,7 +33,15 @@ internal object RemoteWeatherDocument {
         radar: WidgetRadarUi? = null,
     ): CapturedDocument {
         val metrics = context.resources.displayMetrics
-        val palette = RemoteWeatherPalette(
+        val showRadar = radar != null && WidgetRadarSize.fits(widthDp, heightDp)
+        val palette = if (showRadar) RemoteWeatherPalette(
+            background = Color(0xFF10253B),
+            foreground = Color(0xFFF3F8FF),
+            secondary = Color(0xFFB5CBE1),
+            error = Color(0xFFFFB4A9),
+            action = Color(0xFF8DF2CE),
+            mapBackground = Color(0xFF203C55),
+        ) else RemoteWeatherPalette(
             Color(context.getColor(R.color.widget_background)),
             Color(context.getColor(R.color.widget_foreground)),
             Color(context.getColor(R.color.widget_secondary)),
@@ -51,7 +59,6 @@ internal object RemoteWeatherDocument {
             ),
             profile = widgetProfile(),
         ) {
-            val showRadar = WidgetRadarSize.fits(widthDp, heightDp)
             RemoteWeatherContent(
                 text, actions, palette, expanded = widthDp >= 300 && heightDp >= 300,
                 radar = radar.takeIf { showRadar },
@@ -60,9 +67,10 @@ internal object RemoteWeatherDocument {
                     mode = context.getString(R.string.widget_radar_animated),
                     description = context.getString(R.string.widget_radar_description),
                     empty = context.getString(R.string.widget_radar_empty),
+                    play = context.getString(R.string.widget_radar_play),
                     rainCredit = context.getString(R.string.widget_radar_attribution),
                     mapCredit = context.getString(R.string.widget_map_attribution),
-                    mapSize = WidgetRadarSize.mapSize(widthDp, heightDp),
+                    mapSize = WidgetRadarSize.remoteMapSize(widthDp, heightDp),
                 ),
                 radarResizeHint = context.getString(R.string.widget_radar_resize),
             )

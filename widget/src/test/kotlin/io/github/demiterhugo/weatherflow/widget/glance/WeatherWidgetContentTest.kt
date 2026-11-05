@@ -77,7 +77,8 @@ class WeatherWidgetContentTest {
         val frame = checkNotNull(textViews[radar.frames.single().label])
         val mapCredit = textViews.entries.single { it.key.contains("OpenStreetMap") }.value
         assertTrue(map.width > 0 && map.width == map.height && map.width < width / 2)
-        assertTrue(location.absoluteLeft() > map.absoluteLeft() + map.width)
+        assertTrue(location.absoluteTop() + location.height <= map.absoluteTop())
+        assertTrue(frame.absoluteLeft() >= map.absoluteLeft() + map.width)
         val refresh = checkNotNull(textViews[text.refresh])
         assertTrue(frame.height > 0 && frame.absoluteTop() + frame.height <= refresh.absoluteTop())
         val creditBottom = mapCredit.absoluteTop() + mapCredit.height

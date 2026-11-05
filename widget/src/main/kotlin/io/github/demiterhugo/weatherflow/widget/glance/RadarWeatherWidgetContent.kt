@@ -8,14 +8,12 @@ import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
-import androidx.glance.LocalSize
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
@@ -29,7 +27,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import io.github.demiterhugo.weatherflow.widget.R
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
-import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarSize
 import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
 
 @Composable
@@ -43,8 +40,6 @@ internal fun RadarWeatherWidgetContent(
     mapAttribution: Action,
 ) {
     val context = LocalContext.current
-    val size = LocalSize.current
-    val mapSize = WidgetRadarSize.mapSize(size.width.value.toInt(), size.height.value.toInt()).dp
     val image = remember(radar) { radar.latestImage() }
     Column(
         GlanceModifier.fillMaxSize().appWidgetBackground().background(widgetColor(R.color.widget_background))
@@ -61,28 +56,29 @@ internal fun RadarWeatherWidgetContent(
         }
         Spacer(GlanceModifier.height(8.dp))
         Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                GlanceModifier.size(mapSize).cornerRadius(12.dp)
-                    .background(widgetColor(R.color.widget_map_background)),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (image != null) {
-                    Image(ImageProvider(image), context.getString(R.string.widget_radar_description), GlanceModifier.fillMaxSize())
-                } else {
-                    Box(GlanceModifier.padding(8.dp)) {
-                        RadarLabel(radar.message ?: context.getString(R.string.widget_radar_empty), 11, maxLines = 4)
-                    }
-                }
-            }
-            Column(GlanceModifier.defaultWeight().padding(start = 12.dp)) {
+            Column(GlanceModifier.defaultWeight().padding(end = 8.dp)) {
                 Text(text.location, style = TextStyle(color = widgetColor(R.color.widget_foreground),
-                    fontSize = 15.sp, fontWeight = FontWeight.Bold), maxLines = 1)
-                text.temperature?.let {
-                    Text(it, style = TextStyle(color = widgetColor(R.color.widget_foreground), fontSize = 25.sp), maxLines = 1)
-                }
-                text.condition?.let { RadarLabel(it, 11, maxLines = 1) }
+                    fontSize = 17.sp, fontWeight = FontWeight.Bold), maxLines = 1)
+                text.condition?.let { RadarLabel(it, 13, maxLines = 1) }
                 text.observedAt?.let { RadarLabel(it, 10) }
-                radar.frames.lastOrNull()?.let { RadarLabel(it.label, 11) }
+            }
+            text.temperature?.let {
+                Text(it, style = TextStyle(color = widgetColor(R.color.widget_foreground), fontSize = 34.sp), maxLines = 1)
+            }
+        }
+        Spacer(GlanceModifier.height(8.dp))
+        Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            if (image != null) {
+                Image(
+                    ImageProvider(image), context.getString(R.string.widget_radar_description),
+                    GlanceModifier.size(64.dp).cornerRadius(8.dp),
+                )
+            }
+            Column(GlanceModifier.defaultWeight().padding(start = if (image == null) 0.dp else 10.dp)) {
+                RadarLabel(context.getString(R.string.widget_radar_latest), 13, maxLines = 1)
+                val caption = if (image != null) radar.frames.last().label else
+                    radar.message ?: context.getString(R.string.widget_radar_empty)
+                RadarLabel(caption, 11)
             }
         }
         Column {

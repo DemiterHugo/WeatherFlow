@@ -1,6 +1,8 @@
 <resources>
     <string name="widget_radar_static">Still image</string>
-    <string name="widget_radar_animated">Animated</string>
+    <string name="widget_radar_animated">Rain radar</string>
+    <string name="widget_radar_play">▶ Play</string>
+    <string name="widget_radar_latest">Latest radar image</string>
     <string name="widget_radar_description">Regional precipitation radar centered on the saved location</string>
     <string name="widget_radar_attribution">Radar: RainViewer</string>
     <string name="widget_map_attribution">© OpenStreetMap contributors</string>
