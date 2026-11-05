@@ -32,7 +32,7 @@ class RemoteWeatherDocumentTest {
         val radar = WidgetRadarSnapshot(WeatherLocation.Barcelona, radarTestSequence(), radarTestImage(Color.WHITE))
             .toUi(context, WidgetStatus(WeatherLocation.Barcelona), true, Clock.fixed(radarTestTime, ZoneOffset.UTC))
         val radarActions = actions.copy(rainAttribution = pending("rain"), mapAttribution = pending("map"))
-        val document = RemoteWeatherDocument.capture(context, text, radarActions, 320, 460, radar)
+        val document = RemoteWeatherDocument.capture(context, text, radarActions, 260, 270, radar)
         val content = document.decodedContent()
         for (frame in radar.frames) assertTrue(content.contains(frame.label))
         assertTrue(content.contains("RainViewer"))

@@ -25,7 +25,14 @@ import androidx.compose.ui.text.font.FontWeight
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
 import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
 
-internal data class RemoteWeatherPalette(val background: Color, val foreground: Color, val secondary: Color, val error: Color)
+internal data class RemoteWeatherPalette(
+    val background: Color,
+    val foreground: Color,
+    val secondary: Color,
+    val error: Color,
+    val action: Color,
+    val mapBackground: Color,
+)
 
 @RemoteComposable
 @Composable
@@ -45,14 +52,15 @@ internal fun RemoteWeatherContent(
     val open = pendingIntentAction { actions.open }
     val refresh = pendingIntentAction { actions.refresh }
     val attribution = pendingIntentAction { actions.attribution }
-    RemoteColumn(RemoteModifier.fillMaxSize().background(palette.background.rc).padding(16.rdp)) {
+    RemoteColumn(RemoteModifier.fillMaxSize().background(palette.background.rc).padding(12.rdp)) {
         RemoteColumn {
+            radarLabels?.let { Label(it.provider, palette.secondary) }
             RemoteText(
                 text.location.rs, modifier = RemoteModifier.clickable(open),
                 color = palette.foreground.rc, fontSize = 18.rsp, fontWeight = FontWeight.Bold, maxLines = 1,
             )
             text.temperature?.let {
-                RemoteText(it.rs, color = palette.foreground.rc, fontSize = (if (expanded) 42 else 32).rsp,
+                RemoteText(it.rs, color = palette.foreground.rc, fontSize = (if (expanded) 42 else 28).rsp,
                     fontWeight = FontWeight.Normal, maxLines = 1)
             }
             text.condition?.let { Label(it, palette.secondary) }

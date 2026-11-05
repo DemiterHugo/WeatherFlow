@@ -1,5 +1,6 @@
 package io.github.demiterhugo.weatherflow.widget.glance
 
+import io.github.demiterhugo.weatherflow.widget.R
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
 
 import android.content.Intent
@@ -23,6 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import io.github.demiterhugo.weatherflow.widget.radar.*
@@ -37,6 +39,7 @@ import java.time.ZoneOffset
 class WeatherWidgetContentTest {
     @OptIn(ExperimentalGlanceRemoteViewsApi::class)
     @Config(sdk = [37])
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Test
     fun radarLayoutInflatesItsImageTimestampAndAllCreditsWithoutTruncatingChildren() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
@@ -49,24 +52,36 @@ class WeatherWidgetContentTest {
         val root = result.remoteViews.apply(context, FrameLayout(context))
         val strings = mutableListOf<String>()
         val textViews = mutableMapOf<String, TextView>()
-        var images = 0
+        val images = mutableListOf<android.widget.ImageView>()
         fun read(view: View) {
             if (view is TextView) {
                 strings += view.text.toString()
                 textViews[view.text.toString()] = view
             }
-            if (view is android.widget.ImageView && view.drawable != null) images++
+            if (view is android.widget.ImageView && view.drawable != null) images += view
             if (view is ViewGroup) repeat(view.childCount) { read(view.getChildAt(it)) }
         }
         read(root)
-        root.measure(View.MeasureSpec.makeMeasureSpec(600, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(900, View.MeasureSpec.EXACTLY))
-        root.layout(0, 0, 600, 900)
+        val density = context.resources.displayMetrics.density
+        val width = (RADAR_SIZE.width.value * density).toInt()
+        val height = (RADAR_SIZE.height.value * density).toInt()
+        root.measure(
+            View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
+        )
+        root.layout(0, 0, width, height)
         fun View.absoluteLeft(): Int = left + ((parent as? View)?.absoluteLeft() ?: 0)
+        fun View.absoluteTop(): Int = top + ((parent as? View)?.absoluteTop() ?: 0)
+        val map = images.single { it.contentDescription == context.getString(R.string.widget_radar_description) }
         val location = checkNotNull(textViews[text.location])
-        val temperature = checkNotNull(textViews[text.temperature])
-        assertTrue(temperature.absoluteLeft() > location.absoluteLeft() + location.paint.measureText(text.location) + 8)
-        assertTrue(images > 0)
+        val frame = checkNotNull(textViews[radar.frames.single().label])
+        val mapCredit = textViews.entries.single { it.key.contains("OpenStreetMap") }.value
+        assertTrue(map.width > 0 && map.width == map.height && map.width < width / 2)
+        assertTrue(location.absoluteLeft() > map.absoluteLeft() + map.width)
+        val refresh = checkNotNull(textViews[text.refresh])
+        assertTrue(frame.height > 0 && frame.absoluteTop() + frame.height <= refresh.absoluteTop())
+        val creditBottom = mapCredit.absoluteTop() + mapCredit.height
+        assertTrue("Map credit ends at ${creditBottom}px in a ${height}px widget", creditBottom <= height)
         assertTrue(strings.contains(radar.frames.single().label))
         assertTrue(strings.any { it.contains("RainViewer") })
         assertTrue(strings.any { it.contains("OpenStreetMap") })

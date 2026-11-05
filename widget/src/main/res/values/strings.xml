@@ -1,6 +1,6 @@
 <resources>
-    <string name="widget_radar_static">Historical radar · Glance · latest image</string>
-    <string name="widget_radar_animated">Historical radar · Remote Compose</string>
+    <string name="widget_radar_static">Still image</string>
+    <string name="widget_radar_animated">Animated</string>
     <string name="widget_radar_description">Regional precipitation radar centered on the saved location</string>
     <string name="widget_radar_attribution">Radar: RainViewer</string>
     <string name="widget_map_attribution">© OpenStreetMap contributors</string>
@@ -44,4 +44,6 @@
     <string name="widget_snow">Snow</string>
     <string name="widget_thunderstorm">Thunderstorm</string>
     <string name="widget_unknown">Unknown conditions</string>
+    <string name="widget_glance_label" translatable="false">Jetpack Glance</string>
+    <string name="widget_remote_label" translatable="false">Remote Compose</string>
 </resources>

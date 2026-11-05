@@ -24,7 +24,15 @@ import androidx.compose.ui.text.font.FontWeight
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
 import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
 
-internal data class RemoteRadarLabels(val title: String, val description: String, val rainCredit: String, val mapCredit: String)
+internal data class RemoteRadarLabels(
+    val provider: String,
+    val mode: String,
+    val description: String,
+    val empty: String,
+    val rainCredit: String,
+    val mapCredit: String,
+    val mapSize: Int,
+)
 
 @RemoteComposable
 @Composable
@@ -39,35 +47,26 @@ internal fun RadarRemoteWeatherContent(
     val mapCredit = pendingIntentAction { actions.mapAttribution }
     RemoteColumn(RemoteModifier.fillMaxSize().background(palette.background.rc).padding(12.rdp)) {
         RemoteRow(RemoteModifier.fillMaxWidth()) {
-            RemoteText(text.location.rs, RemoteModifier.weight(1f.rf).clickable(open),
-                color = palette.foreground.rc, fontSize = 16.rsp, fontWeight = FontWeight.Bold, maxLines = 1)
-            text.temperature?.let {
-                RemoteText(it.rs, color = palette.foreground.rc, fontSize = 26.rsp, fontWeight = FontWeight.Normal, maxLines = 1)
-            }
+            RemoteText(labels.provider.rs, RemoteModifier.weight(1f.rf).clickable(open),
+                color = palette.foreground.rc, fontSize = 15.rsp, fontWeight = FontWeight.Bold, maxLines = 1)
+            RemoteText(labels.mode.rs, color = palette.secondary.rc, fontSize = 11.rsp,
+                fontWeight = FontWeight.Normal, maxLines = 1)
         }
-        RemoteRow(RemoteModifier.fillMaxWidth()) {
-            text.condition?.let {
-                RemoteText(it.rs, RemoteModifier.weight(1f.rf), color = palette.secondary.rc,
-                    fontSize = 12.rsp, fontWeight = FontWeight.Normal, maxLines = 1)
-            }
-            text.observedAt?.let {
-                RemoteText(it.rs, color = palette.secondary.rc, fontSize = 10.rsp, fontWeight = FontWeight.Normal, maxLines = 2)
-            }
-        }
-        RemoteText(labels.title.rs, color = palette.secondary.rc, fontSize = 13.rsp, fontWeight = FontWeight.Normal, maxLines = 1)
-        RemoteBox(RemoteModifier.weight(1f.rf).fillMaxWidth()) { RemoteRadarContent(radar, palette, labels.description) }
+        RemoteBox(RemoteModifier.height(8.rdp)) {}
+        RemoteRadarContent(radar, text, palette, labels)
         if (radar.frames.isNotEmpty()) radar.message?.let {
-            RemoteText(it.rs, color = palette.secondary.rc, fontSize = 12.rsp, fontWeight = FontWeight.Normal, maxLines = 2)
+            RemoteText(it.rs, color = palette.secondary.rc, fontSize = 10.rsp, fontWeight = FontWeight.Normal, maxLines = 1)
         }
         text.message?.let {
-            RemoteText(it.rs, color = palette.error.rc, fontSize = 12.rsp, fontWeight = FontWeight.Normal, maxLines = 2)
+            RemoteText(it.rs, color = palette.error.rc, fontSize = 10.rsp, fontWeight = FontWeight.Normal, maxLines = 1)
         }
-        RemoteRow(RemoteModifier.fillMaxWidth().height(48.rdp), horizontalArrangement = RemoteArrangement.SpaceBetween) {
+        RemoteBox(RemoteModifier.weight(1f.rf)) {}
+        RemoteRow(RemoteModifier.fillMaxWidth().height(44.rdp), horizontalArrangement = RemoteArrangement.SpaceBetween) {
             RemoteText(text.refresh.rs,
-                RemoteModifier.clickable(refresh, enabled = !text.refreshing && !radar.refreshing).padding(vertical = 12.rdp),
-                color = palette.foreground.rc, fontSize = 14.rsp, fontWeight = FontWeight.Bold)
-            RemoteText(text.open.rs, RemoteModifier.clickable(open).padding(vertical = 12.rdp),
-                color = palette.foreground.rc, fontSize = 14.rsp, fontWeight = FontWeight.Normal)
+                RemoteModifier.clickable(refresh, enabled = !text.refreshing && !radar.refreshing).padding(vertical = 10.rdp),
+                color = palette.action.rc, fontSize = 13.rsp, fontWeight = FontWeight.Bold, maxLines = 1)
+            RemoteText(text.open.rs, RemoteModifier.clickable(open).padding(vertical = 10.rdp),
+                color = palette.action.rc, fontSize = 13.rsp, fontWeight = FontWeight.Normal, maxLines = 1)
         }
         RemoteColumn {
             RemoteRow(RemoteModifier.fillMaxWidth(), horizontalArrangement = RemoteArrangement.SpaceBetween) {

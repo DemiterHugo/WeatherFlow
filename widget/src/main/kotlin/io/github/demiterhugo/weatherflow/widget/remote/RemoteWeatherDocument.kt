@@ -38,6 +38,8 @@ internal object RemoteWeatherDocument {
             Color(context.getColor(R.color.widget_foreground)),
             Color(context.getColor(R.color.widget_secondary)),
             Color(context.getColor(R.color.widget_error)),
+            Color(context.getColor(R.color.widget_action)),
+            Color(context.getColor(R.color.widget_map_background)),
         )
         val document = captureSingleRemoteDocument(
             context = context,
@@ -54,8 +56,13 @@ internal object RemoteWeatherDocument {
                 text, actions, palette, expanded = widthDp >= 300 && heightDp >= 300,
                 radar = radar.takeIf { showRadar },
                 radarLabels = RemoteRadarLabels(
-                    context.getString(R.string.widget_radar_animated), context.getString(R.string.widget_radar_description),
-                    context.getString(R.string.widget_radar_attribution), context.getString(R.string.widget_map_attribution),
+                    provider = context.getString(R.string.widget_remote_label),
+                    mode = context.getString(R.string.widget_radar_animated),
+                    description = context.getString(R.string.widget_radar_description),
+                    empty = context.getString(R.string.widget_radar_empty),
+                    rainCredit = context.getString(R.string.widget_radar_attribution),
+                    mapCredit = context.getString(R.string.widget_map_attribution),
+                    mapSize = WidgetRadarSize.mapSize(widthDp, heightDp),
                 ),
                 radarResizeHint = context.getString(R.string.widget_radar_resize),
             )

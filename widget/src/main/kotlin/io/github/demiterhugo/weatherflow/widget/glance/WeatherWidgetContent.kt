@@ -51,8 +51,9 @@ internal fun WeatherWidgetContent(
     val expanded = LocalSize.current.width >= EXPANDED_SIZE.width && LocalSize.current.height >= EXPANDED_SIZE.height
     Column(
         modifier = GlanceModifier.fillMaxSize().appWidgetBackground()
-            .background(widgetColor(R.color.widget_background)).cornerRadius(24.dp).padding(16.dp),
+            .background(widgetColor(R.color.widget_background)).cornerRadius(24.dp).padding(12.dp),
     ) {
+        WidgetLabel(LocalContext.current.getString(R.string.widget_glance_label), "widget_provider")
         Text(
             text.location,
             modifier = GlanceModifier.fillMaxWidth().clickable(openApp).semantics { testTag = "widget_location" },
@@ -62,7 +63,7 @@ internal fun WeatherWidgetContent(
         text.temperature?.let {
             Text(
                 it, modifier = GlanceModifier.semantics { testTag = "widget_temperature" },
-                style = TextStyle(color = widgetColor(R.color.widget_foreground), fontSize = if (expanded) 42.sp else 32.sp),
+                style = TextStyle(color = widgetColor(R.color.widget_foreground), fontSize = if (expanded) 42.sp else 28.sp),
                 maxLines = 1,
             )
         }
