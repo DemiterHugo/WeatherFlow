@@ -5,4 +5,8 @@
     <color name="widget_error">#FFB4AB</color>
     <color name="widget_action">#ADC2FF</color>
     <color name="widget_map_background">#253752</color>
+    <color name="widget_glance_surface">#22364E</color>
+    <color name="widget_glance_ink">#ECF6FF</color>
+    <color name="widget_glance_subtle">#BFD4ED</color>
+    <color name="widget_glance_accent">#2D4762</color>
 </resources>

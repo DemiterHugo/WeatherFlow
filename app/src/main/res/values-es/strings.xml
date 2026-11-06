@@ -37,7 +37,7 @@
     <string name="widget_comparison_title">Compara los widgets</string>
     <string name="widget_comparison_intro">Añade los widgets al inicio y compáralos allí.</string>
     <string name="widget_comparison_glance">Jetpack Glance</string>
-    <string name="widget_comparison_static">Última imagen del radar</string>
+    <string name="widget_comparison_static">El tiempo de un vistazo</string>
     <string name="widget_comparison_remote">Remote Compose</string>
     <string name="widget_comparison_animated">Radar de lluvia al tocar · Android 17 o superior</string>
     <string name="widget_comparison_picker">Abre el selector de widgets del inicio y elige WeatherFlow.</string>

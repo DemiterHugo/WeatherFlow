@@ -25,11 +25,11 @@ class WeatherWidgetRegistryTest {
             putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, width)
             putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
         }
-        service.updateAppWidgetOptions(8, size(259, 270))
+        service.updateAppWidgetOptions(8, size(239, 145))
         assertFalse(WeatherWidgetRegistry.hasRadarWidgets(context))
-        service.updateAppWidgetOptions(8, size(260, 269))
+        service.updateAppWidgetOptions(8, size(240, 144))
         assertFalse(WeatherWidgetRegistry.hasRadarWidgets(context))
-        service.updateAppWidgetOptions(8, size(260, 270))
+        service.updateAppWidgetOptions(8, size(240, 145))
         assertTrue(WeatherWidgetRegistry.hasRadarWidgets(context))
     }
 
@@ -45,6 +45,7 @@ class WeatherWidgetRegistryTest {
     fun glanceAloneKeepsWeatherUpdatesActive() {
         bind(1, WeatherWidgetReceiver::class.java)
         assertTrue(WeatherWidgetRegistry.hasWidgets(context))
+        assertFalse(WeatherWidgetRegistry.hasRadarWidgets(context))
         assertTrue(WeatherWidgetRegistry.remoteIds(context).isEmpty())
     }
 

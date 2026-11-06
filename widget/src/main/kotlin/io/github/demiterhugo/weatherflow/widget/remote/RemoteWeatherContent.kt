@@ -23,15 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
-import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarUi
 
 internal data class RemoteWeatherPalette(
     val background: Color,
     val foreground: Color,
     val secondary: Color,
     val error: Color,
-    val action: Color,
-    val mapBackground: Color,
 )
 
 @RemoteComposable
@@ -41,20 +38,15 @@ internal fun RemoteWeatherContent(
     actions: RemoteWeatherActions,
     palette: RemoteWeatherPalette,
     expanded: Boolean,
-    radar: WidgetRadarUi? = null,
-    radarLabels: RemoteRadarLabels? = null,
-    radarResizeHint: String? = null,
+    provider: String,
+    radarResizeHint: String,
 ) {
-    if (radar != null && radarLabels != null) {
-        RadarRemoteWeatherContent(text, actions, palette, radar, radarLabels)
-        return
-    }
     val open = pendingIntentAction { actions.open }
     val refresh = pendingIntentAction { actions.refresh }
     val attribution = pendingIntentAction { actions.attribution }
     RemoteColumn(RemoteModifier.fillMaxSize().background(palette.background.rc).padding(12.rdp)) {
         RemoteColumn {
-            radarLabels?.let { Label(it.provider, palette.secondary) }
+            Label(provider, palette.secondary)
             RemoteText(
                 text.location.rs, modifier = RemoteModifier.clickable(open),
                 color = palette.foreground.rc, fontSize = 18.rsp, fontWeight = FontWeight.Bold, maxLines = 1,
@@ -88,7 +80,7 @@ internal fun RemoteWeatherContent(
                 )
             }
             if (expanded) Label(text.modelEstimate, palette.secondary)
-            if (expanded) radarResizeHint?.let { Label(it, palette.secondary) }
+            if (expanded) Label(radarResizeHint, palette.secondary)
             RemoteText(
                 text.attribution.rs, modifier = RemoteModifier.clickable(attribution),
                 color = palette.secondary.rc, fontSize = 10.rsp, fontWeight = FontWeight.Normal, maxLines = 1,

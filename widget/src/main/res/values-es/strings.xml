@@ -1,11 +1,9 @@
 <resources>
-    <string name="widget_radar_static">Imagen fija</string>
     <string name="widget_radar_animated">Radar de lluvia</string>
-    <string name="widget_radar_play">▶ Reproducir</string>
-    <string name="widget_radar_latest">Última imagen de radar</string>
+    <string name="widget_radar_play">Reproducir el radar</string>
     <string name="widget_radar_description">Radar regional de precipitación centrado en la ubicación guardada</string>
-    <string name="widget_radar_attribution">Radar: RainViewer</string>
-    <string name="widget_map_attribution">© Colaboradores de OpenStreetMap</string>
+    <string name="widget_radar_attribution">RainViewer</string>
+    <string name="widget_map_attribution">© OpenStreetMap</string>
     <string name="widget_radar_empty">Sin radar guardado. Pulsa Actualizar.</string>
     <string name="widget_radar_updating">Actualizando radar…</string>
     <string name="widget_radar_error">Error al actualizar el radar · datos guardados si existen</string>
@@ -17,7 +15,7 @@
     <string name="widget_radar_resize">Amplía el widget para ver el radar de lluvia</string>
     <string name="remote_widget_description">Widget meteorológico experimental para Android 17 o superior. Usa tu ubicación guardada.</string>
     <string name="remote_widget_unavailable">No se ha podido crear el documento experimental de Remote Compose. Reintenta o abre la app.</string>
-    <string name="widget_description">Tiempo de Barcelona o de tu ubicación guardada. Amplíalo para ver más detalles.</string>
+    <string name="widget_description">El tiempo de un vistazo en tu ubicación guardada.</string>
     <string name="widget_barcelona">Barcelona</string>
     <string name="widget_device_location">Ubicación guardada</string>
     <string name="widget_unknown_location">El tiempo</string>
@@ -43,4 +41,5 @@
     <string name="widget_snow">Nieve</string>
     <string name="widget_thunderstorm">Tormenta</string>
     <string name="widget_unknown">Condiciones desconocidas</string>
+    <string name="widget_radar_title">Radar · %1$s</string>
 </resources>

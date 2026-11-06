@@ -33,14 +33,14 @@ class RemoteWeatherDocumentTest {
     @Test
     fun radarDocumentDrawsSixFramesWithoutSwappingLayoutsAndFitsTransportBudget() = runBlocking {
         val radar = WidgetRadarSnapshot(WeatherLocation.Barcelona, radarTestSequence(), radarTestImage(Color.WHITE))
-            .toUi(context, WidgetStatus(WeatherLocation.Barcelona), true, Clock.fixed(radarTestTime, ZoneOffset.UTC))
+            .toUi(context, WidgetStatus(WeatherLocation.Barcelona), Clock.fixed(radarTestTime, ZoneOffset.UTC))
         val radarActions = actions.copy(rainAttribution = pending("rain"), mapAttribution = pending("map"))
-        val document = RemoteWeatherDocument.capture(context, text, radarActions, 260, 270, radar)
+        val document = RemoteWeatherDocument.capture(context, text, radarActions, 240, 145, radar)
         val content = document.decodedContent()
         for (frame in radar.frames) assertTrue(content.contains(frame.label))
         assertTrue(content.contains("RainViewer"))
         assertTrue(content.contains("OpenStreetMap"))
-        assertEquals(5, document.actions().size)
+        assertEquals(setOf(radarActions.open, radarActions.rainAttribution, radarActions.mapAttribution), document.actions())
         assertTrue(document.bytes.size < 512 * 1024)
         val operations = document.decodedOperations()
         assertEquals(7, operations.filterIsInstance<BitmapData>().size)
