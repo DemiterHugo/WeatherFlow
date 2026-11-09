@@ -24,27 +24,24 @@ class WidgetRadarUiTest {
     private val clock = Clock.fixed(radarTestTime, ZoneOffset.UTC)
     private fun snapshot() = WidgetRadarSnapshot(WeatherLocation.Barcelona, radarTestSequence(), radarTestImage(Color.WHITE))
 
-    @Test fun staticAndAnimatedViewsUseSameLastFrameAndMatchingTimestamp() {
-        val snapshot = snapshot()
-        val static = snapshot.toUi(context, status, false, clock)
-        val animated = snapshot.toUi(context, status, true, clock)
-        assertEquals(1, static.frames.size)
-        assertEquals(6, animated.frames.size)
-        assertEquals(animated.frames.last().label, static.frames.single().label)
-        assertTrue(static.frames.single().label.endsWith("6/6"))
-        assertEquals(animated.latestImage()!!.getPixel(20, 20), static.latestImage()!!.getPixel(20, 20))
-        assertNotEquals(Color.WHITE, static.latestImage()!!.getPixel(20, 20))
+    @Test fun playbackUsesSixLocalizedTimesInChronologicalOrder() {
+        val frames = snapshot().toUi(context, status, clock).frames
+        assertEquals(6, frames.size)
+        assertEquals(6, frames.map { it.label }.toSet().size)
+        assertEquals(android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date.from(radarTestTime)),
+            frames.last().label)
+        assertNotEquals(frames.first().overlay.getPixel(20, 20), frames.last().overlay.getPixel(20, 20))
     }
 
     @Test fun stalenessUsesNewestFrameAndNotTheHistoricalFrameBeingPlayed() {
-        assertNull(snapshot().toUi(context, status, true, clock).message)
+        assertNull(snapshot().toUi(context, status, clock).message)
         val oldClock = Clock.fixed(radarTestTime.plusSeconds(1801), ZoneOffset.UTC)
-        assertTrue(snapshot().toUi(context, status, true, oldClock).message!!.contains("30"))
+        assertTrue(snapshot().toUi(context, status, oldClock).message!!.contains("30"))
     }
 
     @Test fun missingMapDoesNotDisplayUnlocatedPrecipitationAndFailureKeepsCachedFrames() {
-        assertTrue(snapshot().copy(map = null).toUi(context, status, false, clock).frames.isEmpty())
-        val cached = snapshot().toUi(context, status.copy(radarFailed = true), true, clock)
+        assertTrue(snapshot().copy(map = null).toUi(context, status, clock).frames.isEmpty())
+        val cached = snapshot().toUi(context, status.copy(radarFailed = true), clock)
         assertEquals(6, cached.frames.size)
         assertNotNull(cached.message)
     }
@@ -56,8 +53,8 @@ class WidgetRadarUiTest {
         val sequence = io.github.demiterhugo.weatherflow.domain.model.RadarSequence(
             source.coordinates, source.zoom, source.imageSize, source.manifestGeneratedAt, source.fetchedAt, source.frames, coverage,
         )
-        val ui = original.copy(sequence = sequence).toUi(context, status, false, clock)
+        val ui = original.copy(sequence = sequence).toUi(context, status, clock)
         assertTrue(ui.message!!.contains("coverage"))
-        assertEquals(1, ui.frames.size)
+        assertEquals(6, ui.frames.size)
     }
 }

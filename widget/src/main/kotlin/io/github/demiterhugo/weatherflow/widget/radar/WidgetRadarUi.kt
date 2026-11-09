@@ -22,18 +22,10 @@ internal data class WidgetRadarUi(
     val frames: List<RadarFrameUi> = emptyList(),
     val message: String? = null,
     val refreshing: Boolean = false,
-) {
-    fun latestImage(): Bitmap? {
-        val background = map ?: return null
-        val latest = frames.lastOrNull() ?: return null
-        return background.copy(Bitmap.Config.ARGB_8888, true).also {
-            Canvas(it).drawBitmap(latest.overlay, 0f, 0f, null)
-        }
-    }
-}
+)
 
 internal fun WidgetRadarSnapshot.toUi(
-    context: Context, status: WidgetStatus, animate: Boolean, clock: Clock = Clock.systemUTC(),
+    context: Context, status: WidgetStatus, clock: Clock = Clock.systemUTC(),
 ): WidgetRadarUi {
     val sequence = sequence
     val message = buildList {
@@ -60,8 +52,7 @@ internal fun WidgetRadarSnapshot.toUi(
         val background = decode(map)
         val mask = decode(sequence.coverage.mask)
         val frames = try {
-            val selected = sequence.frames.withIndex().let { if (animate) it.toList() else listOf(it.last()) }
-            selected.map { (index, frame) ->
+            sequence.frames.map { frame ->
                 val source = decode(frame.image)
                 val overlay = try { source.copy(Bitmap.Config.ARGB_8888, true) } finally { source.recycle() }
                 val canvas = Canvas(overlay)
@@ -72,8 +63,7 @@ internal fun WidgetRadarSnapshot.toUi(
                 marker.color = Color.rgb(24, 72, 152)
                 canvas.drawCircle(128f, 128f, 3f, marker)
                 val date = Date.from(frame.generatedAt)
-                val timestamp = DateFormat.getDateFormat(context).format(date) + " " + DateFormat.getTimeFormat(context).format(date)
-                RadarFrameUi(overlay, "$timestamp · ${index + 1}/${sequence.frames.size}")
+                RadarFrameUi(overlay, DateFormat.getTimeFormat(context).format(date))
             }
         } finally { mask.recycle() }
         WidgetRadarUi(background, frames, message, status.radarRefreshing)

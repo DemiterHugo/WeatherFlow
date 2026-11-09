@@ -33,6 +33,7 @@ internal object RemoteWeatherDocument {
         radar: WidgetRadarUi? = null,
     ): CapturedDocument {
         val metrics = context.resources.displayMetrics
+        val showRadar = WidgetRadarSize.fits(widthDp, heightDp)
         val palette = RemoteWeatherPalette(
             Color(context.getColor(R.color.widget_background)),
             Color(context.getColor(R.color.widget_foreground)),
@@ -49,16 +50,25 @@ internal object RemoteWeatherDocument {
             ),
             profile = widgetProfile(),
         ) {
-            val showRadar = WidgetRadarSize.fits(widthDp, heightDp)
-            RemoteWeatherContent(
-                text, actions, palette, expanded = widthDp >= 300 && heightDp >= 300,
-                radar = radar.takeIf { showRadar },
-                radarLabels = RemoteRadarLabels(
-                    context.getString(R.string.widget_radar_animated), context.getString(R.string.widget_radar_description),
-                    context.getString(R.string.widget_radar_attribution), context.getString(R.string.widget_map_attribution),
-                ),
-                radarResizeHint = context.getString(R.string.widget_radar_resize),
-            )
+            if (showRadar && radar != null) {
+                RemoteRadarContent(
+                    radar, text, actions,
+                    RemoteRadarLabels(
+                        title = context.getString(R.string.widget_radar_title, text.location),
+                        description = context.getString(R.string.widget_radar_description),
+                        empty = context.getString(R.string.widget_radar_empty),
+                        play = context.getString(R.string.widget_radar_play),
+                        rainCredit = context.getString(R.string.widget_radar_attribution),
+                        mapCredit = context.getString(R.string.widget_map_attribution),
+                    ),
+                )
+            } else {
+                RemoteWeatherContent(
+                    text, actions, palette, expanded = widthDp >= 300 && heightDp >= 300,
+                    provider = context.getString(R.string.widget_remote_label),
+                    radarResizeHint = context.getString(R.string.widget_radar_resize),
+                )
+            }
         }
         require(document.bytes.size <= 512 * 1024) { "Remote widget document exceeds its transport budget" }
         return document

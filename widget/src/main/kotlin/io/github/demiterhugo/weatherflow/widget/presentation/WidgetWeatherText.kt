@@ -25,6 +25,8 @@ internal data class WidgetWeatherText(
     val open: String,
     val attribution: String,
     val modelEstimate: String,
+    val compactTemperature: String? = temperature,
+    val weatherCondition: WeatherCondition? = null,
 )
 
 internal fun WidgetWeatherSnapshot.toText(context: Context, status: WidgetStatus): WidgetWeatherText {
@@ -59,6 +61,11 @@ internal fun WidgetWeatherSnapshot.toText(context: Context, status: WidgetStatus
         open = context.getString(R.string.widget_open),
         attribution = context.getString(R.string.widget_attribution),
         modelEstimate = context.getString(R.string.widget_model_estimate),
+        compactTemperature = weather?.let {
+            val rounded = NumberFormat.getIntegerInstance(locale).apply { isGroupingUsed = false }
+            context.getString(R.string.widget_temperature_compact, rounded.format(it.temperatureCelsius))
+        },
+        weatherCondition = weather?.condition,
     )
 }
 

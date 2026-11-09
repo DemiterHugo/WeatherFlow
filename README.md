@@ -1,8 +1,8 @@
 # WeatherFlow
 
 Android project for comparing Jetpack Glance and Remote Compose through weather
-widgets, including historical precipitation radar: a static latest frame in Glance
-and a locally replayed sequence in Remote Compose.
+widgets. Glance shows current conditions in a compact square. Remote Compose
+replays historical precipitation directly on the home screen.
 
 ## Project status
 
@@ -83,16 +83,11 @@ coordinates and do not track movement. There is no city search yet.
 ## Glance widget
 
 Add **WeatherFlow · Glance** from the launcher's widget picker, or use **Add Glance
-widget** in the app when the launcher supports pinning. The compact layout shows
-location, temperature, condition, provider valid time and attribution. Expanding
-to at least 300 × 300 dp also shows humidity, wind in km/h and the model-estimate
-label. The widget supports English/Spanish and light/dark resources, and provides
-Refresh, Open app and provider-link actions. A selector preview is available on
-Android 12 and later; it contains no sample weather reading.
-
-Glance 1.2.0 produces classic RemoteViews. At **300 × 360 dp** or larger, its radar
-layout shows the newest historical image, its generation time, coverage information
-and provider credits. Smaller layouts retain the existing weather presentation.
+widget** in the app when the launcher supports pinning. The 2 × 2 widget shows
+the saved location, rounded Celsius temperature, condition and a provider link.
+Tap the weather summary to open the app. When data is unavailable, the widget
+offers a refresh action. The widget uses classic RemoteViews with English and
+Spanish strings and light and dark colors.
 
 Widgets read the same Room repository and DataStore location as the app. An active
 Glance session observes cache/location changes. Foreground changes also enqueue
@@ -119,25 +114,21 @@ repositories to system-created workers and widgets.
 ## Experimental Remote Compose widget
 
 On Android 17 (API 37) and later, add **WeatherFlow · Remote Compose** from the
-launcher picker or **Add Remote Compose widget (experimental)** in the app.
-Its compact and expanded layouts use the same localized presentation values,
-weather cache, selected location, units, valid time and Open-Meteo attribution as
-Glance. Actions refresh the weather, open the app and open the provider's website.
-The layout is regenerated after resizing; expanding to 300 × 300 dp adds humidity,
-wind and the model-estimate label. The receiver only schedules work.
+launcher picker or **Add Remote Compose** in the app.
+The 4 × 2 widget displays a full-width radar map for the shared saved location.
+At **240 × 145 dp** or larger, the launcher can display the radar. Smaller
+instances use a weather summary. Tap the title to open the app. When the radar
+is unavailable, the widget offers a refresh action.
 
 The `remote` package captures a Remote Compose document in a CoroutineWorker and
-sends it through Android's `RemoteViews.DrawInstructions`. It uses the platform
-widget profile for document API level 7. This does not embed a player in the app
-or convert the entire widget to a bitmap. At **300 × 360 dp** or larger, the
-radar layout replays the same historical frames used by Glance. A remote integer
-clock expression selects one state per second in `RemoteStateLayout`. Each state
-contains its image and matching generation time/counter. The host executes the
-sequence; Kotlin coroutines and WorkManager do not drive individual frames.
-The basemap is recorded once and reused across frame states. Documents are capped
-at 512 KiB before transport; creation/size failures use the existing explicit
-experimental-widget error view. The clock expression's alpha22 restricted API
-suppression is isolated in `RemoteRadarContent`.
+sends it through Android's `RemoteViews.DrawInstructions` using the platform
+widget profile for document API level 7. Tapping **Play** replays the historical
+frames once and leaves the newest image visible. The launcher handles the tap
+and advances the clock locally. The precipitation overlay, time and progress
+change while the basemap and widget layout stay in place.
+Documents are capped at 512 KiB before transport. Creation or size failures use
+the experimental widget error view. The alpha22 expression and drawing
+integration is isolated in `RemoteRadarContent`.
 
 Both providers share one unique 15-minute schedule and one fetch queue. Removing
 either provider keeps the schedule while the other still has installed instances.
@@ -357,33 +348,32 @@ map-download feature.
 
 Web Mercator world-pixel coordinates position and crop these tiles around the
 radar's saved center. Longitude wraps at the dateline; latitude never wraps across
-the poles. Both providers share the same basemap, precipitation overlays, coverage
-shading and center marker. Glance composites the latest overlay; Remote Compose
-keeps the base and overlays separate for document reuse. A missing map produces
-an explicit unavailable state rather than an unlocated precipitation picture.
+the poles. Remote Compose keeps the base and precipitation overlays separate.
+Both layers use the same crop so the coverage and center marker stay aligned.
+The widget shows an unavailable state when the map is missing.
 
 The map uses a 16 MiB OkHttp disk cache, honors server expiry and conditional
 revalidation headers, and supplies a seven-day fallback only when no cache/expiry
 headers are provided. Cache-only reads never access the network. Invalid imagery
 is removed from the HTTP cache so it can be retried. Requests identify WeatherFlow
-with its repository URL. Both radar layouts show a visible, clickable OpenStreetMap
-copyright credit, in addition to RainViewer and Open-Meteo attribution. See the
+with its repository URL. The radar shows visible, clickable OpenStreetMap and
+RainViewer credits. The weather widget links to Open-Meteo. See the
 [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) and
 [OpenStreetMap copyright](https://www.openstreetmap.org/copyright). The public tile
 service offers no availability guarantee.
 
-Frame timestamps remain visible during replay, with a frame counter. Coverage
+The time and progress indicator update with each frame during replay. Coverage
 is described explicitly. At render time, the entire sequence is marked old when
 its newest frame is more than 30 minutes old. Timestamps remain visible between
 refreshes even if background work is deferred. The historical frames are not a forecast.
 Android controls background scheduling and launcher rendering; the 15-minute
-interval is not a guarantee of exact refresh times or uninterrupted playback.
+interval is approximate. Radar playback starts on tap and uses the cached sequence.
 
-The radar layouts were manually checked in the Android 17 Pixel launcher;
-frame/image and timestamp changes were also verified in One UI on the Samsung
-Galaxy S25 Ultra. Document tests verify six frame states, five actions and seven
-encoded bitmaps (one shared map plus six overlays). Glance tests inflate actual
-RemoteViews and check that header text remains separated after measurement.
+The 2 × 2 and 4 × 2 widgets were checked in One UI on a Samsung Galaxy S25 Ultra
+running Android 17. Document tests verify six conditional overlays, one local
+playback action, three external links and seven encoded bitmaps (one map plus
+six overlays). Glance tests inflate the RemoteViews at the minimum size and
+check that the weather and attribution fit.
 
 ## Dependency injection
 
@@ -439,7 +429,7 @@ persistence after reopening storage.
 
 Widget tests verify cache/session observation, switching locations, progress,
 refresh failures and cancellation, and unique 15-minute scheduling/removal.
-Glance content tests check compact/expanded layouts, empty/error/loading states
+Glance content tests check the square layout, empty/error/loading states
 and attribution, including actual RemoteViews inflation during refresh. They use
 Robolectric 4.17 with Android APIs 26 and 37 and the test-only
 JVM options recommended in its [setup guide](https://robolectric.org/getting-started/).
