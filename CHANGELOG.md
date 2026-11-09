@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.2.0
+
+Home screen redesign and on-demand radar playback. The Android application uses
+`versionCode = 3`.
+
+### Changed
+
+- Glance uses a 2 × 2 weather summary with the saved location, current
+  temperature and conditions.
+- Remote Compose uses a 4 × 2 radar with a full-width map, a play button and
+  a progress indicator. One UI can play the cached historical frames and leave
+  the latest image visible. The map and controls stay in place during playback.
+- The app identifies both providers and offers separate pinning actions on
+  supported launchers. The launcher icon and widget picker previews match the
+  redesigned app and widgets.
+
+### Compatibility
+
+- The app and Glance support Android 8.0 (API 26) and later. Remote Compose
+  remains experimental and requires Android 17 (API 37) or later.
+- Radar playback shows past precipitation. Weather and radar updates follow
+  the saved location and Android's background scheduling.
+- An in-place update from the `v0.1.0` source tag to 0.2.0 preserved both
+  pinned widget instances and their sizes in One UI on a Galaxy S25 Ultra.
+  The test used debug APKs signed with the same key.
+
 ## 0.1.0 - 2026-11-03
 
 First demonstration version of WeatherFlow, comparing Jetpack Glance and

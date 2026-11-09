@@ -25,8 +25,8 @@ internal object RemoteWeatherRenderer {
                 val heightKey = if (landscape) AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT
                 val document = RemoteWeatherDocument.capture(
                     context, text, actions,
-                    widthDp = options.getInt(widthKey, 180).coerceAtLeast(180),
-                    heightDp = options.getInt(heightKey, 220).coerceAtLeast(220),
+                    widthDp = options.getInt(widthKey, 180).coerceAtLeast(1),
+                    heightDp = options.getInt(heightKey, 145).coerceAtLeast(1),
                     radar = radar,
                 )
                 manager.updateAppWidget(id, RemoteWeatherDocument.toRemoteViews(document))

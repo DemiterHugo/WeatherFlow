@@ -1,9 +1,9 @@
 <resources>
-    <string name="widget_radar_static">Historical radar · Glance · latest image</string>
-    <string name="widget_radar_animated">Historical radar · Remote Compose</string>
+    <string name="widget_radar_animated">Rain radar</string>
+    <string name="widget_radar_play">Play radar</string>
     <string name="widget_radar_description">Regional precipitation radar centered on the saved location</string>
-    <string name="widget_radar_attribution">Radar: RainViewer</string>
-    <string name="widget_map_attribution">© OpenStreetMap contributors</string>
+    <string name="widget_radar_attribution">RainViewer</string>
+    <string name="widget_map_attribution">© OpenStreetMap</string>
     <string name="widget_radar_empty">No saved radar. Tap Refresh.</string>
     <string name="widget_radar_updating">Updating radar…</string>
     <string name="widget_radar_error">Radar update failed · saved data if available</string>
@@ -17,7 +17,7 @@
     <string name="remote_widget_description">Experimental weather widget for Android 17+. Uses your shared saved location.</string>
     <string name="remote_widget_unavailable">The experimental Remote Compose document could not be created. Try again or open the app.</string>
     <string name="widget_name" translatable="false">WeatherFlow · Glance</string>
-    <string name="widget_description">Weather for Barcelona or your saved device location. Resize for more details.</string>
+    <string name="widget_description">Weather at a glance for your saved location.</string>
     <string name="widget_barcelona">Barcelona</string>
     <string name="widget_device_location">Saved location</string>
     <string name="widget_unknown_location">Weather</string>
@@ -33,7 +33,7 @@
     <string name="widget_error_empty">Weather unavailable. Try again.</string>
     <string name="widget_attribution">Open-Meteo · CC BY 4.0</string>
     <string name="widget_model_estimate">Weather-model estimates</string>
-    <string name="widget_preview_temperature" translatable="false">— °C</string>
+    <string name="widget_preview_temperature" translatable="false">—°</string>
     <string name="widget_preview_hint">Preview · live data after adding</string>
     <string name="widget_clear">Clear</string>
     <string name="widget_partly_cloudy">Partly cloudy</string>
@@ -44,4 +44,9 @@
     <string name="widget_snow">Snow</string>
     <string name="widget_thunderstorm">Thunderstorm</string>
     <string name="widget_unknown">Unknown conditions</string>
+    <string name="widget_glance_label" translatable="false">Jetpack Glance</string>
+    <string name="widget_remote_label" translatable="false">Remote Compose</string>
+    <string name="widget_radar_title">Radar · %1$s</string>
+    <string name="widget_weather_source" translatable="false">Open-Meteo</string>
+    <string name="widget_temperature_compact" translatable="false">%1$s°</string>
 </resources>

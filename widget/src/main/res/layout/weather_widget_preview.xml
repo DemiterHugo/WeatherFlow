@@ -1,17 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:padding="20dp"
-    android:background="@drawable/widget_preview_background">
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="@string/widget_name" android:textColor="@color/widget_secondary" android:textSize="12sp" />
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="@string/widget_barcelona" android:textColor="@color/widget_foreground" android:textSize="20sp" android:textStyle="bold" />
-    <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-        android:gravity="center_vertical" android:text="@string/widget_preview_temperature"
-        android:textColor="@color/widget_foreground" android:textSize="40sp" />
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="@string/widget_preview_hint" android:textColor="@color/widget_secondary" android:textSize="12sp" />
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:text="@string/widget_attribution" android:textColor="@color/widget_secondary" android:textSize="11sp" />
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_glance_preview_background"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/widget_barcelona"
+            android:textColor="@color/widget_glance_ink"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/widget_weather_cloud"
+            android:tint="@color/widget_glance_ink" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_preview_temperature"
+        android:textColor="@color/widget_glance_ink"
+        android:textSize="46sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_weather_source"
+        android:textColor="@color/widget_glance_subtle"
+        android:textSize="12sp" />
 </LinearLayout>

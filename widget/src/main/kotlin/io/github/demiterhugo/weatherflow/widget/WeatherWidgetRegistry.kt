@@ -11,8 +11,7 @@ import io.github.demiterhugo.weatherflow.widget.radar.WidgetRadarSize
 internal object WeatherWidgetRegistry {
     fun hasRadarWidgets(context: Context): Boolean {
         val manager = AppWidgetManager.getInstance(context)
-        val glance = manager.getAppWidgetIds(ComponentName(context, WeatherWidgetReceiver::class.java))
-        return (glance + remoteIds(context)).any { id ->
+        return remoteIds(context).any { id ->
             val options = manager.getAppWidgetOptions(id)
             val landscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
             val width = options.getInt(if (landscape) AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH else AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)

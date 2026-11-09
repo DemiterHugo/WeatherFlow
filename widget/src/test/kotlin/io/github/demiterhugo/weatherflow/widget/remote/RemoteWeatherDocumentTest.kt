@@ -8,6 +8,9 @@ import androidx.compose.remote.creation.compose.capture.CapturedDocument
 import androidx.compose.remote.core.Operation
 import androidx.compose.remote.core.operations.TextData
 import androidx.compose.remote.core.operations.BitmapData
+import androidx.compose.remote.core.operations.ConditionalOperations
+import androidx.compose.remote.core.operations.layout.managers.StateLayout
+import androidx.compose.remote.core.operations.layout.modifiers.ValueFloatExpressionChangeActionOperation
 import androidx.compose.remote.core.RemoteComposeBuffer
 import io.github.demiterhugo.weatherflow.widget.presentation.WidgetWeatherText
 import kotlinx.coroutines.runBlocking
@@ -28,18 +31,22 @@ import java.time.ZoneOffset
 @Config(sdk = [37])
 class RemoteWeatherDocumentTest {
     @Test
-    fun radarDocumentContainsSixTimedStatesProviderCreditsAndFitsTransportBudget() = runBlocking {
+    fun radarDocumentDrawsSixFramesWithoutSwappingLayoutsAndFitsTransportBudget() = runBlocking {
         val radar = WidgetRadarSnapshot(WeatherLocation.Barcelona, radarTestSequence(), radarTestImage(Color.WHITE))
-            .toUi(context, WidgetStatus(WeatherLocation.Barcelona), true, Clock.fixed(radarTestTime, ZoneOffset.UTC))
+            .toUi(context, WidgetStatus(WeatherLocation.Barcelona), Clock.fixed(radarTestTime, ZoneOffset.UTC))
         val radarActions = actions.copy(rainAttribution = pending("rain"), mapAttribution = pending("map"))
-        val document = RemoteWeatherDocument.capture(context, text, radarActions, 320, 460, radar)
+        val document = RemoteWeatherDocument.capture(context, text, radarActions, 240, 145, radar)
         val content = document.decodedContent()
         for (frame in radar.frames) assertTrue(content.contains(frame.label))
         assertTrue(content.contains("RainViewer"))
         assertTrue(content.contains("OpenStreetMap"))
-        assertEquals(5, document.actions().size)
+        assertEquals(setOf(radarActions.open, radarActions.rainAttribution, radarActions.mapAttribution), document.actions())
         assertTrue(document.bytes.size < 512 * 1024)
-        assertEquals(7, document.decodedOperations().filterIsInstance<BitmapData>().size)
+        val operations = document.decodedOperations()
+        assertEquals(7, operations.filterIsInstance<BitmapData>().size)
+        assertEquals(6, operations.filterIsInstance<ConditionalOperations>().size)
+        assertTrue(operations.none { it is StateLayout })
+        assertEquals(1, operations.filterIsInstance<ValueFloatExpressionChangeActionOperation>().size)
         assertNotNull(RemoteWeatherDocument.toRemoteViews(document))
     }
 

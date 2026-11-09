@@ -1,18 +1,15 @@
 <resources>
     <string name="app_name" translatable="false">WeatherFlow</string>
     <string name="weather_city_barcelona">Barcelona</string>
-    <string name="weather_default_location">Default location</string>
     <string name="weather_location_device">My location</string>
-    <string name="weather_location_saved">Saved device location. Use the button to update it.</string>
     <string name="weather_use_location">Use my location</string>
     <string name="weather_use_barcelona">Use Barcelona</string>
     <string name="weather_locating">Finding your location…</string>
     <string name="weather_location_denied">Location permission was denied. Your selected location is unchanged.</string>
     <string name="weather_location_failed">We couldn’t obtain or save your location. Check location settings and try again.</string>
     <string name="weather_add_widget">Add Glance widget</string>
-    <string name="weather_add_remote_widget">Add Remote Compose widget (experimental)</string>
+    <string name="weather_add_remote_widget">Add Remote Compose</string>
     <string name="weather_loading">Loading weather…</string>
-    <string name="weather_current_conditions">Current conditions</string>
     <string name="weather_temperature">%1$s °C</string>
     <string name="weather_feels_like">Feels like %1$s °C</string>
     <string name="weather_humidity">Humidity</string>
@@ -38,4 +35,11 @@
     <string name="weather_condition_snow">Snow</string>
     <string name="weather_condition_thunderstorm">Thunderstorm</string>
     <string name="weather_condition_unknown">Unknown conditions</string>
+    <string name="widget_comparison_title">Compare the widgets</string>
+    <string name="widget_comparison_intro">Add the widgets to your home screen and compare them there.</string>
+    <string name="widget_comparison_glance">Jetpack Glance</string>
+    <string name="widget_comparison_static">Current weather at a glance</string>
+    <string name="widget_comparison_remote">Remote Compose</string>
+    <string name="widget_comparison_animated">Tap to replay rain radar · Android 17+</string>
+    <string name="widget_comparison_picker">Open the home screen widget picker and select WeatherFlow.</string>
 </resources>

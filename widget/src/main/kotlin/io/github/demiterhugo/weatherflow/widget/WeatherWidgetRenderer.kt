@@ -25,7 +25,7 @@ internal object WeatherWidgetRenderer {
             val snapshot = WidgetWeatherReader(dependencies.locationRepository(), dependencies.weatherRepository()).read()
             val status = WidgetStatusStorage.read(context, snapshot.location)
             val radar = WidgetRadarReader(dependencies.radarRepository(), dependencies.radarMapRepository()).read(snapshot.location)
-            RemoteWeatherRenderer.renderAll(context, snapshot.toText(context, status), radar.toUi(context, status, animate = true))
+            RemoteWeatherRenderer.renderAll(context, snapshot.toText(context, status), radar.toUi(context, status))
         }
     }
 }
