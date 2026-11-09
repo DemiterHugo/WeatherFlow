@@ -4,6 +4,18 @@ Android project for comparing Jetpack Glance and Remote Compose through weather
 widgets. Glance shows current conditions in a compact square. Remote Compose
 replays historical precipitation directly on the home screen.
 
+## Screenshots
+
+Captured on a Samsung Galaxy S25 Ultra running Android 17.
+
+| Weather screen | Jetpack Glance widget |
+| :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/0d235b77-2d50-4b7a-a13c-862c629b3482" width="260" alt="WeatherFlow app showing current conditions in Barcelona" /> | <img src="https://github.com/user-attachments/assets/0c8f4468-728b-4c0e-8a96-7b4161510924" width="300" alt="WeatherFlow Jetpack Glance widget showing Barcelona weather" /> |
+
+**Experimental Remote Compose radar widget (Android 17+)**
+
+<img src="https://github.com/user-attachments/assets/8b0c1746-4c6d-4316-b6b8-56be8d85ef53" width="740" alt="Remote Compose rain radar widget showing precipitation around Barcelona and playback controls" />
+
 ## Project status
 
 Version **0.2.0** (`versionCode = 3`) introduces the redesigned widgets.
