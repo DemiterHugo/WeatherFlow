@@ -6,8 +6,8 @@ replays historical precipitation directly on the home screen.
 
 ## Project status
 
-Version **0.1.0** (`versionCode = 2`) is the first demonstration release.
-See the [changelog](CHANGELOG.md) for its scope and compatibility limits.
+Version **0.2.0** (`versionCode = 3`) introduces the redesigned widgets.
+See the [changelog](CHANGELOG.md) for changes and compatibility.
 
 The project currently contains a Compose weather screen with MVVM, a modular
 build structure, Hilt dependency injection, tested domain models, and an
@@ -15,8 +15,8 @@ Open-Meteo weather repository backed by a persistent Room cache, and a resizable
 Glance weather widget and an experimental Remote Compose weather widget.
 Barcelona is the default location; the app can save an approximate device location
 for the screen and both widget providers. A RainViewer repository now downloads
-and caches complete historical radar sequences. The large widgets overlay these
-images on the same OpenStreetMap basemap.
+and caches historical radar sequences. The Remote Compose widget overlays these
+images on an OpenStreetMap basemap.
 
 ## Modules
 
@@ -169,13 +169,11 @@ If document creation fails, the experimental widget shows an explicit error with
 refresh/open actions, and Glance can still receive updates. Enabling the provider
 by Android version does not replace testing it in the device's actual launcher.
 
-This integration was manually checked in the Android 17 emulator's Pixel launcher
-and One UI on a Samsung Galaxy S25 Ultra running Android 17. Checks included
-pinning and displaying the widget; the emulator also covered refresh, opening the
-app and resizing to the expanded layout. The same APK was installed and launched
-on an Android 9 emulator to check compatibility below the dependency's declared
-API 29 minimum. API 26 paths are covered by Robolectric, rather than a physical
-Android 8 device.
+The original widget integration was checked in the Android 17 emulator's Pixel
+launcher and on a Samsung Galaxy S25 Ultra with One UI. The redesigned widgets
+were checked on the S25 Ultra. An Android 9 emulator was used for the original
+compatibility check below the dependency's declared API 29 minimum. Robolectric
+covers the API 26 paths.
 
 ## Weather domain
 
@@ -249,7 +247,7 @@ The radar uses its own provider and cache, described below.
 an explicit suspending `refreshRadar(coordinates)`. Its `:data` implementation is
 bound as a Hilt singleton. Callers pass the coordinates from the shared location
 repository, so Barcelona and a saved device position use the same contract.
-Both large widgets use this repository and a cache-only `WidgetRadarReader`.
+The Remote Compose widget uses this repository and a cache-only `WidgetRadarReader`.
 Widget installation, manual refresh and shared periodic work update radar data.
 Weather and radar have independent persisted progress/errors scoped to coordinates.
 Failure of one does not suppress successful data from the other. Operation
@@ -332,10 +330,10 @@ this integration follows the specific Weather Maps and transition documentation.
 The free API is intended for personal and educational use, requires no API key,
 and has no availability guarantee. Review its
 [terms and attribution requirements](https://www.rainviewer.com/api.html) before
-redistributing or using the project commercially. The radar layouts visibly credit
-**Radar: RainViewer** and link to the provider. This repository's source availability does not relicense the provider's
-data. Automated tests use controlled responses and generated images, with no
-live provider calls or downloaded radar imagery checked into Git.
+redistributing or using the project commercially. The radar widget displays a
+**RainViewer** credit linked to the provider. The provider data is subject to
+its own terms. Automated tests use controlled responses and generated images.
+Live provider calls are excluded from CI and radar imagery stays out of Git.
 
 ### Geographic map and radar presentation
 
