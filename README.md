@@ -504,3 +504,10 @@ exercise the hosted SDK setup, cache or artifact-upload steps.
 Use GitFlow with feature branches based on `develop` and Conventional Commits.
 Each commit should represent one coherent change that builds and passes its
 relevant checks, including any required configuration and documentation updates.
+
+## License
+
+WeatherFlow's own source code is licensed under the [Apache License, Version 2.0](LICENSE),
+including the code in the `v0.2.0` release. Open-Meteo data, RainViewer radar
+imagery and OpenStreetMap map data remain subject to their respective terms
+and attribution requirements.
